@@ -1,7 +1,7 @@
 /*
  * led.c
  *
- * Created on: June 23, 2015
+ * Created on: Jun 23, 2015
  *     Author: Ekawahyu Susilo
  *
  * Copyright (c) 2015, Chongqing Aisenke Electronic Technology Co., Ltd.
