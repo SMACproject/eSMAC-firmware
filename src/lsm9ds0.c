@@ -64,9 +64,8 @@ int lsm9ds0_gyro_init(void)
       return 0;
 }
 
-struct gyro_context lsm9ds0_gyro_acquire(void)
+void lsm9ds0_gyro_acquire(int16_t * x, int16_t * y, int16_t * z)
 {
-    struct gyro_context gyro;
     unsigned char read_byte_high;
     unsigned char read_byte_low;
     
@@ -80,8 +79,8 @@ struct gyro_context lsm9ds0_gyro_acquire(void)
     read_byte_high = spi_read();
     spi_deselect(LSM9DS0_GYRO_CS);
 
-    gyro.x = read_byte_high;
-    gyro.x = ((gyro.x << 8) & 0xFF00) | read_byte_low;
+    *x = read_byte_high;
+    *x = ((*x << 8) & 0xFF00) | read_byte_low;
     
     spi_select(LSM9DS0_GYRO_CS);
     spi_write(GYR_REG_OUT_Y_L);
@@ -93,8 +92,8 @@ struct gyro_context lsm9ds0_gyro_acquire(void)
     read_byte_high = spi_read();
     spi_deselect(LSM9DS0_GYRO_CS);
 
-    gyro.y = read_byte_high;
-    gyro.y = ((gyro.y << 8) & 0xFF00) | read_byte_low;
+    *y = read_byte_high;
+    *y = ((*y << 8) & 0xFF00) | read_byte_low;
 
     spi_select(LSM9DS0_GYRO_CS);
     spi_write(GYR_REG_OUT_Z_L);
@@ -106,10 +105,8 @@ struct gyro_context lsm9ds0_gyro_acquire(void)
     read_byte_high = spi_read();
     spi_deselect(LSM9DS0_GYRO_CS);
     
-    gyro.z = read_byte_high;
-    gyro.z = ((gyro.z << 8) & 0xFF00) | read_byte_low;
-    
-    return gyro;
+    *z = read_byte_high;
+    *z = ((*z << 8) & 0xFF00) | read_byte_low;
 }
 
 int lsm9ds0_accelerometer_init(void)
@@ -128,9 +125,8 @@ int lsm9ds0_accelerometer_init(void)
       return 0;
 }
 
-struct accelerometer_context lsm9ds0_accelerometer_acquire(void)
+void lsm9ds0_accelerometer_acquire(int16_t * x, int16_t * y, int16_t * z)
 {
-    struct accelerometer_context accel;
     unsigned char read_byte_high;
     unsigned char read_byte_low;
         
@@ -144,8 +140,8 @@ struct accelerometer_context lsm9ds0_accelerometer_acquire(void)
     read_byte_high = spi_read();
     spi_deselect(LSM9DS0_ACCELEROMETER_CS);
 
-    accel.x = read_byte_high;
-    accel.x = ((accel.x << 8) & 0xFF00) | read_byte_low;
+    *x = read_byte_high;
+    *x = ((*x << 8) & 0xFF00) | read_byte_low;
     
     spi_select(LSM9DS0_ACCELEROMETER_CS);
     spi_write(ACC_REG_OUT_Y_L);
@@ -157,8 +153,8 @@ struct accelerometer_context lsm9ds0_accelerometer_acquire(void)
     read_byte_high = spi_read();
     spi_deselect(LSM9DS0_ACCELEROMETER_CS);
 
-    accel.y = read_byte_high;
-    accel.y = ((accel.y << 8) & 0xFF00) | read_byte_low;
+    *y = read_byte_high;
+    *y = ((*y << 8) & 0xFF00) | read_byte_low;
     
     spi_select(LSM9DS0_ACCELEROMETER_CS);
     spi_write(ACC_REG_OUT_Z_L);
@@ -170,8 +166,6 @@ struct accelerometer_context lsm9ds0_accelerometer_acquire(void)
     read_byte_high = spi_read();
     spi_deselect(LSM9DS0_ACCELEROMETER_CS);
 
-    accel.z = read_byte_high;
-    accel.z = ((accel.z << 8) & 0xFF00) | read_byte_low;
-    
-    return accel;
+    *z = read_byte_high;
+    *z = ((*z << 8) & 0xFF00) | read_byte_low;
 }

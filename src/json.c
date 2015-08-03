@@ -56,6 +56,8 @@
 extern char is_auto_run;
 extern char is_streaming_imu;
 
+char motor_speed_changed = 0;
+
 struct gyro_context mygyro;
 struct accelerometer_context myaccel;
 
@@ -123,11 +125,11 @@ int json_parser(char *json_string) {
 #endif
             if(res) {
 #ifdef CONFIG_DONT_HAVE_STRTOL
-              if (atol(buffer) == 0) led &= ~LED1;
-              if (atol(buffer) == 1) led |= LED1;
+              if (atol(buffer) == 0) {led &= ~LED1; rf_send("1of", 3);}
+              if (atol(buffer) == 1) {led |= LED1; rf_send("1on", 3);}
 #else
-              if (strtol(buffer, &pEnd, 10) == 0) led &= ~LED1;
-              if (strtol(buffer, &pEnd, 10) == 1) led |= LED1;
+              if (strtol(buffer, &pEnd, 10) == 0) {led &= ~LED1; rf_send("1of", 3);}
+              if (strtol(buffer, &pEnd, 10) == 1) {led |= LED1; rf_send("1on", 3);}
 #endif
             }
             i++;
@@ -141,11 +143,11 @@ int json_parser(char *json_string) {
 #endif
             if(res) {
 #ifdef CONFIG_DONT_HAVE_STRTOL
-              if (atol(buffer) == 0) led &= ~LED2;
-              if (atol(buffer) == 1) led |= LED2;
+              if (atol(buffer) == 0) {led &= ~LED2; rf_send("2of", 3);}
+              if (atol(buffer) == 1) {led |= LED2; rf_send("2on", 3);}
 #else
-              if (strtol(buffer, &pEnd, 10) == 0) led &= ~LED2;
-              if (strtol(buffer, &pEnd, 10) == 1) led |= LED2;
+              if (strtol(buffer, &pEnd, 10) == 0) {led &= ~LED2; rf_send("2of", 3);}
+              if (strtol(buffer, &pEnd, 10) == 1) {led |= LED2; rf_send("2on", 3);}
 #endif
             }
             i++;
@@ -159,11 +161,11 @@ int json_parser(char *json_string) {
 #endif
             if(res) {
 #ifdef CONFIG_DONT_HAVE_STRTOL
-              if (atol(buffer) == 0) led &= ~LED3;
-              if (atol(buffer) == 1) led |= LED3;
+              if (atol(buffer) == 0) {led &= ~LED3; rf_send("3of", 3);}
+              if (atol(buffer) == 1) {led |= LED3; rf_send("3on", 3);}
 #else
-              if (strtol(buffer, &pEnd, 10) == 0) led &= ~LED3;
-              if (strtol(buffer, &pEnd, 10) == 1) led |= LED3;
+              if (strtol(buffer, &pEnd, 10) == 0) {led &= ~LED3; rf_send("3of", 3);}
+              if (strtol(buffer, &pEnd, 10) == 1) {led |= LED3; rf_send("3on", 3);}
 #endif
             }
             i++;
@@ -177,11 +179,11 @@ int json_parser(char *json_string) {
 #endif
             if(res) {
 #ifdef CONFIG_DONT_HAVE_STRTOL
-              if (atol(buffer) == 0) led &= ~LED4;
-              if (atol(buffer) == 1) led |= LED4;
+              if (atol(buffer) == 0) {led &= ~LED4; rf_send("4of", 3);}
+              if (atol(buffer) == 1) {led |= LED4; rf_send("4on", 3);}
 #else
-              if (strtol(buffer, &pEnd, 10) == 0) led &= ~LED4;
-              if (strtol(buffer, &pEnd, 10) == 1) led |= LED4;
+              if (strtol(buffer, &pEnd, 10) == 0) {led &= ~LED4; rf_send("4of", 3);}
+              if (strtol(buffer, &pEnd, 10) == 1) {led |= LED4; rf_send("4on", 3);}
 #endif
             }
             i++;
@@ -208,11 +210,11 @@ int json_parser(char *json_string) {
 #endif
             if(res) {
 #ifdef CONFIG_DONT_HAVE_STRTOL
-              if (atol(buffer) == 0) led &= ~LED1;
-              if (atol(buffer) == 1) led |= LED1;
+              if (atol(buffer) == 0) {led &= ~LED1; rf_send("1of", 3);}
+              if (atol(buffer) == 1) {led |= LED1; rf_send("1on", 3);}
 #else
-              if (strtol(buffer, &pEnd, 10) == 0) led &= ~LED1;
-              if (strtol(buffer, &pEnd, 10) == 1) led |= LED1;
+              if (strtol(buffer, &pEnd, 10) == 0) {led &= ~LED1; rf_send("1of", 3);}
+              if (strtol(buffer, &pEnd, 10) == 1) {led |= LED1; rf_send("1on", 3);}
 #endif
             }
             i++;
@@ -227,61 +229,111 @@ int json_parser(char *json_string) {
 #if OBJECT_MOTOR
         motor = motor_get();
         
-	/* Loop over all keys of the root object */
-	for (i = 1; i < r; i++) {
-		if (jsoneq(json_string, &t[i], "motor1") == 0) {
+  /* Loop over all keys of the root object */
+  for (i = 1; i < r; i++) {
+    if (jsoneq(json_string, &t[i], "motor1") == 0) {
                   if (jsoneq(json_string, &t[i+1], "cw") == 0) {
-                    motor |= MOTOR1_PIN1;
-                    motor &= ~MOTOR1_PIN2;
+                    motor |= MOTOR1_1;
+                    motor &= ~MOTOR1_2;
+                    rf_send("m1:1",4);
                   }
                   if (jsoneq(json_string, &t[i+1], "ccw") == 0) {
-                    motor &= ~MOTOR1_PIN1;
-                    motor |= MOTOR1_PIN2;
+                    motor &= ~MOTOR1_1;
+                    motor |= MOTOR1_2;
+                    rf_send("m1:1",4);
                   }
                   if (jsoneq(json_string, &t[i+1], "off") == 0) {
-                    motor &= ~MOTOR1_PIN1;
-                    motor &= ~MOTOR1_PIN2;
+                    motor &= ~MOTOR1_1;
+                    motor &= ~MOTOR1_2;
+                    rf_send("m1:0",4);
                   }
                   if (jsoneq(json_string, &t[i+1], "brake") == 0) {
-                    motor |= MOTOR1_PIN1;
-                    motor |= MOTOR1_PIN2;
+                    motor |= MOTOR1_1;
+                    motor |= MOTOR1_2;
                   }
                   i++;
-		} else if (jsoneq(json_string, &t[i], "motor2") == 0) {
+    } else if (jsoneq(json_string, &t[i], "motor2") == 0) {
                   if (jsoneq(json_string, &t[i+1], "cw") == 0) {
-                    motor |= MOTOR2_PIN1;
-                    motor &= ~MOTOR2_PIN2;
+                    motor |= MOTOR2_1;
+                    motor &= ~MOTOR2_2;
+                    rf_send("m2:1",4);
                   }
                   if (jsoneq(json_string, &t[i+1], "ccw") == 0) {
-                    motor &= ~MOTOR2_PIN1;
-                    motor |= MOTOR2_PIN2;
+                    motor &= ~MOTOR2_1;
+                    motor |= MOTOR2_2;
+                    rf_send("m2:1",4);
                   }
                   if (jsoneq(json_string, &t[i+1], "off") == 0) {
-                    motor &= ~MOTOR2_PIN1;
-                    motor &= ~MOTOR2_PIN2;
+                    motor &= ~MOTOR2_1;
+                    motor &= ~MOTOR2_2;
+                    rf_send("m2:0",4);
                   }
                   if (jsoneq(json_string, &t[i+1], "brake") == 0) {
-                    motor |= MOTOR2_PIN1;
-                    motor |= MOTOR2_PIN2;
+                    motor |= MOTOR2_1;
+                    motor |= MOTOR2_2;
                   }
                   i++;
-		} else if (jsoneq(json_string, &t[i], "mode") == 0) {
+    } else if (jsoneq(json_string, &t[i], "mode") == 0) {
                   if (jsoneq(json_string, &t[i+1], "manual") == 0) {
                     is_auto_run = 0;
                   }
                   if (jsoneq(json_string, &t[i+1], "auto") == 0) {
                     is_auto_run = 1;
                   }
-                  i++;
+                } else if (jsoneq(json_string, &t[i], "speed1") == 0) {
+                  motor_speed_changed = 1;
+                  if (jsoneq(json_string, &t[i+1], "1") == 0) {
+                    motor1_speed = 10;
+                  } else if (jsoneq(json_string, &t[i+1], "2") == 0) {
+                    motor1_speed = 20;
+                  } else if (jsoneq(json_string, &t[i+1], "3") == 0) {
+                    motor1_speed = 30;
+                  } else if (jsoneq(json_string, &t[i+1], "4") == 0) {
+                    motor1_speed = 40;
+                  } else if (jsoneq(json_string, &t[i+1], "5") == 0) {
+                    motor1_speed = 50;
+                  } else if (jsoneq(json_string, &t[i+1], "6") == 0) {
+                    motor1_speed = 60;
+                  } else if (jsoneq(json_string, &t[i+1], "7") == 0) {
+                    motor1_speed = 70;
+                  } else if (jsoneq(json_string, &t[i+1], "8") == 0) {
+                    motor1_speed = 80;
+                  } else if (jsoneq(json_string, &t[i+1], "9") == 0) {
+                    motor1_speed = 90;
+                  } else if (jsoneq(json_string, &t[i+1], "10") == 0) {
+                    motor1_speed = 99;
+                  }
+                } else if (jsoneq(json_string, &t[i], "speed2") == 0) {
+                  motor_speed_changed = 1;
+                  if (jsoneq(json_string, &t[i+1], "1") == 0) {
+                    motor2_speed = 10;
+                  } else if (jsoneq(json_string, &t[i+1], "2") == 0) {
+                    motor2_speed = 20;
+                  } else if (jsoneq(json_string, &t[i+1], "3") == 0) {
+                    motor2_speed = 30;
+                  } else if (jsoneq(json_string, &t[i+1], "4") == 0) {
+                    motor2_speed = 40;
+                  } else if (jsoneq(json_string, &t[i+1], "5") == 0) {
+                    motor2_speed = 50;
+                  } else if (jsoneq(json_string, &t[i+1], "6") == 0) {
+                    motor2_speed = 60;
+                  } else if (jsoneq(json_string, &t[i+1], "7") == 0) {
+                    motor2_speed = 70;
+                  } else if (jsoneq(json_string, &t[i+1], "8") == 0) {
+                    motor2_speed = 80;
+                  } else if (jsoneq(json_string, &t[i+1], "9") == 0) {
+                    motor2_speed = 90;
+                  } else if (jsoneq(json_string, &t[i+1], "10") == 0) {
+                    motor2_speed = 99;
+                  }
                 } else {
                   /*printf("Unexpected key: %.*s (%i)\n", t[i].end-t[i].start,
                          json_string + t[i].start, t[i].size);*/
-		}
-	}
-        
+    }
+  }
         motor_set(motor);
-        clock_delay_usec(60000);
-        motor_set(0);
+        //clock_delay_usec(60000);
+        //motor_set(0);
 #endif
 #if OBJECT_IMU
 	/* Loop over all keys of the root object */
@@ -294,8 +346,8 @@ int json_parser(char *json_string) {
                     flash_erase_page(114);
                     led_set(LED1);
                     while (flash_count < 6000) {
-                      mygyro = lsm9ds0_gyro_acquire();
-                      myaccel = lsm9ds0_accelerometer_acquire();
+                      lsm9ds0_gyro_acquire(&mygyro.x, &mygyro.y, &mygyro.z);
+                      lsm9ds0_accelerometer_acquire(&myaccel.x, &myaccel.y, &myaccel.z);
                       flash_buffer[0] = (myaccel.x >> 8) & 0x00FF;
                       flash_buffer[1] = myaccel.x & 0x00FF;
                           flash_buffer[2] = (myaccel.y >> 8) & 0x00FF;

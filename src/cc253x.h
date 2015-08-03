@@ -34,9 +34,9 @@
  *   Definitions for TI/Chipcon cc2530, cc2531 and cc2533 SFR registers.
  *
  *   Based on information in:
- *   "CC253x System-on-Chip Solution for 2.4-GHz IEEE 802.15.4 and ZigBee
+ *   "CC253x System-on-Chip Solution for 2.4-GHz IEEE 802.15.4 and ZigBee®
  *    Applications"
- *   Literature Number: SWRU191B. April 2009 Revised September 2010
+ *   Literature Number: SWRU191B. April 2009 reevised September 2010
  *
  * \author
  *         George Oikonomou - <oikonomou@users.sourceforge.net>
@@ -52,29 +52,31 @@
  * Interrupt Vectors
  * (Table 2.5, page 40)
  *---------------------------------------------------------------------------*/
-#define RFERR_VECTOR     0  /* RF TXFIFO underflow and RXFIFO overflow. */
-#define ADC_VECTOR       1  /* ADC end of conversion */
-#define URX0_VECTOR      2  /* USART 0 RX complete */
-#define URX1_VECTOR      3  /* USART 1 RX complete */
-#define ENC_VECTOR       4  /* AES encryption/decryption complete */
-#define ST_VECTOR        5  /* Sleep Timer compare */
-#define P2INT_VECTOR     6  /* Port 2 inputs/USB/I2C */
-#define UTX0_VECTOR      7  /* USART 0 TX complete */
-#define DMA_VECTOR       8  /* DMA transfer complete */
-#define T1_VECTOR        9  /* Timer 1 (16-bit) capture/compare/overflow */
-#define T2_VECTOR       10  /* Timer 2 (MAC Timer) */
-#define T3_VECTOR       11  /* Timer 3 (8-bit) compare/overflow */
-#define T4_VECTOR       12  /* Timer 4 (8-bit) compare/overflow */
-#define P0INT_VECTOR    13  /* Port 0 inputs */
-#define UTX1_VECTOR     14  /* USART1 TX complete */
-#define P1INT_VECTOR    15  /* Port 1 inputs */
-#define RF_VECTOR       16  /* RF general interrupts */
-#define WDT_VECTOR      17  /* Watchdog overflow in timer mode */
+#define  RFERR_VECTOR   VECT(  0, 0x03 )   /*  RF TX FIFO Underflow and RX FIFO Overflow   */
+#define  ADC_VECTOR     VECT(  1, 0x0B )   /*  ADC End of Conversion                       */
+#define  URX0_VECTOR    VECT(  2, 0x13 )   /*  USART0 RX Complete                          */
+#define  URX1_VECTOR    VECT(  3, 0x1B )   /*  USART1 RX Complete                          */
+#define  ENC_VECTOR     VECT(  4, 0x23 )   /*  AES Encryption/Decryption Complete          */
+#define  ST_VECTOR      VECT(  5, 0x2B )   /*  Sleep Timer Compare                         */
+#define  P2INT_VECTOR   VECT(  6, 0x33 )   /*  Port 2 Inputs                               */
+#define  UTX0_VECTOR    VECT(  7, 0x3B )   /*  USART0 TX Complete                          */
+#define  DMA_VECTOR     VECT(  8, 0x43 )   /*  DMA Transfer Complete                       */
+#define  T1_VECTOR      VECT(  9, 0x4B )   /*  Timer 1 (16-bit) Capture/Compare/Overflow   */
+#define  T2_VECTOR      VECT( 10, 0x53 )   /*  Timer 2 (MAC Timer)                         */
+#define  T3_VECTOR      VECT( 11, 0x5B )   /*  Timer 3 (8-bit) Capture/Compare/Overflow    */
+#define  T4_VECTOR      VECT( 12, 0x63 )   /*  Timer 4 (8-bit) Capture/Compare/Overflow    */
+#define  P0INT_VECTOR   VECT( 13, 0x6B )   /*  Port 0 Inputs                               */
+#define  UTX1_VECTOR    VECT( 14, 0x73 )   /*  USART1 TX Complete                          */
+#define  P1INT_VECTOR   VECT( 15, 0x7B )   /*  Port 1 Inputs                               */
+#define  RF_VECTOR      VECT( 16, 0x83 )   /*  RF General Interrupts                       */
+#define  WDT_VECTOR     VECT( 17, 0x8B )   /*  Watchdog Overflow in Timer Mode             */
 /*---------------------------------------------------------------------------
  * Special Function Registers and BITs
  * (Table 2.1, page 27)
  *---------------------------------------------------------------------------*/
 /* 8051 Internals */
+SFRBIT(P0,0x80,P0_7,P0_6,P0_5,P0_4,P0_3,P0_2,P0_1,P0_0)
+#ifndef __SFRBIT_IN_USE__
 SFR(P0,        0x80); /* Port 0 */
   SBIT(P0_7,     0x80, 7); /* Port 0 bit 7 */
   SBIT(P0_6,     0x80, 6); /* Port 0 bit 6 */
@@ -84,12 +86,15 @@ SFR(P0,        0x80); /* Port 0 */
   SBIT(P0_2,     0x80, 2); /* Port 0 bit 2 */
   SBIT(P0_1,     0x80, 1); /* Port 0 bit 1 */
   SBIT(P0_0,     0x80, 0); /* Port 0 bit 0 */
+#endif
 SFR(SP,        0x81); /* Stack pointer */
 SFR(DPL0,      0x82); /* Data pointer 0 low byte */
 SFR(DPH0,      0x83); /* Data pointer 0 high byte */
 SFR(DPL1,      0x84); /* Data pointer 1 low byte */
 SFR(DPH1,      0x85); /* Data pointer 1 high byte */
 SFR(PCON,      0x87); /* Power mode control */
+SFRBIT(TCON,0x88,URX1IF,TCON_6,ADCIF,TCON_4,URX0IF,IT1,RFERRIF,IT0)
+#ifndef __SFRBIT_IN_USE__
 SFR(TCON,      0x88); /* Interrupt flags */
   SBIT(URX1IF,   0x88, 7); /* USART1 RX interrupt flag */
   SBIT(ADCIF,    0x88, 5); /* ADC interrupt flag */
@@ -97,6 +102,9 @@ SFR(TCON,      0x88); /* Interrupt flags */
   SBIT(IT1,      0x88, 2); /* Reserved. Must always be set to 1 */
   SBIT(RFERRIF,  0x88, 1); /* RF TXFIFO/RXFIFO interrupt flag */
   SBIT(IT0,      0x88, 0); /* Reserved. Must always be set to 1 */
+#endif
+SFRBIT(P1,0x90,P1_7,P1_6,P1_5,P1_4,P1_3,P1_2,P1_1,P1_0)
+#ifndef __SFRBIT_IN_USE__
 SFR(P1,        0x90); /* Port 1 */
   SBIT(P1_7,     0x90, 7); /* Port 1 bit 7 */
   SBIT(P1_6,     0x90, 6); /* Port 1 bit 6 */
@@ -106,12 +114,18 @@ SFR(P1,        0x90); /* Port 1 */
   SBIT(P1_2,     0x90, 2); /* Port 1 bit 2 */
   SBIT(P1_1,     0x90, 1); /* Port 1 bit 1 */
   SBIT(P1_0,     0x90, 0); /* Port 1 bit 0 */
+#endif
 SFR(DPS,       0x92); /* Data pointer select */
+SFRBIT(S0CON,0x98,S0CON_7,S0CON_6,S0CON_5,S0CON_4,S0CON_3,S0CON_2,ENCIF_1,ENCIF_0)
+#ifndef __SFRBIT_IN_USE__
 SFR(S0CON,     0x98); /* Interrupt flags 2 */
   SBIT(ENCIF_1,  0x98, 1); /* AES Interrupt flag 1 */
   SBIT(ENCIF_0,  0x98, 0); /* AES Interrupt flag 0 */
+#endif
 SFR(IEN2,      0x9A); /* Interrupt enable 2 */
 SFR(S1CON,     0x9B); /* Interrupt flags 3 */
+SFRBIT(P2,0xA0,P2_7,P2_6,P2_5,P2_4,P2_3,P2_2,P2_1,P2_0)
+#ifndef __SFRBIT_IN_USE__
 SFR(P2,        0xA0); /* Port 2 */
   SBIT(P2_7,     0xA0, 7); /* Port 2 bit 7 */
   SBIT(P2_6,     0xA0, 6); /* Port 2 bit 6 */
@@ -121,6 +135,9 @@ SFR(P2,        0xA0); /* Port 2 */
   SBIT(P2_2,     0xA0, 2); /* Port 2 bit 2 */
   SBIT(P2_1,     0xA0, 1); /* Port 2 bit 1 */
   SBIT(P2_0,     0xA0, 0); /* Port 2 bit 0 */
+#endif
+SFRBIT(IEN0,0xA8,EA,IEN0_6,STIE,ENCIE,URX1IE,URX0IE,ADCIE,RFERRIE)
+#ifndef __SFRBIT_IN_USE__
 SFR(IEN0,      0xA8); /* Interrupt enable 0 */
   SBIT(EA,       0xA8, 7); /* All interrupts - enable/disable */
   SBIT(STIE,     0xA8, 5); /* Sleep Timer interrupt enable */
@@ -129,7 +146,10 @@ SFR(IEN0,      0xA8); /* Interrupt enable 0 */
   SBIT(URX0IE,   0xA8, 2); /* USART0 RX interrupt enable */
   SBIT(ADCIE,    0xA8, 1); /* ADC interrupt enable */
   SBIT(RFERRIE,  0xA8, 0); /* RF TXFIFO/RXFIFO interrupt enable */
+#endif
 SFR(IP0,       0xA9); /* Interrupt priority 0 */
+SFRBIT(IEN1,0xB8,IEN1_7,IEN1_6,P0IE,T4IE,T3IE,T2IE,T1IE,DMAIE)
+#ifndef __SFRBIT_IN_USE__
 SFR(IEN1,      0xB8); /* Interrupt enable 1 */
   SBIT(P0IE,     0xB8, 5); /* Port 0 interrupt enable */
   SBIT(T4IE,     0xB8, 4); /* Timer 4 interrupt enable */
@@ -137,7 +157,10 @@ SFR(IEN1,      0xB8); /* Interrupt enable 1 */
   SBIT(T2IE,     0xB8, 2); /* Timer 2 interrupt enable */
   SBIT(T1IE,     0xB8, 1); /* Timer 1 interrupt enable */
   SBIT(DMAIE,    0xB8, 0); /* DMA Transfer interrupt enable */
+#endif
 SFR(IP1,       0xB9); /* Interrupt priority 1 */
+SFRBIT(IRCON,0xC0,STIF,IRCON_6,P0IF,T4IF,T3IF,T2IF,T1IF,DMAIF)
+#ifndef __SFRBIT_IN_USE__
 SFR(IRCON,     0xC0); /* Interrupt flags 4 */
   SBIT(STIF,     0xC0, 7); /* Sleep Timer interrupt flag */
   SBIT(P0IF,     0xC0, 5); /* Port 0 interrupt flag */
@@ -146,6 +169,9 @@ SFR(IRCON,     0xC0); /* Interrupt flags 4 */
   SBIT(T2IF,     0xC0, 2); /* Timer 2 interrupt flag */
   SBIT(T1IF,     0xC0, 1); /* Timer 1 interrupt flag */
   SBIT(DMAIF,    0xC0, 0); /* DMA-complete interrupt flag */
+#endif
+SFRBIT(PSW,0xD0,CY,AC,F0,RS1,RS0,OV,F1,P)
+#ifndef __SFRBIT_IN_USE__
 SFR(PSW,       0xD0); /* Program status word */
   SBIT(CY,       0xD0, 7); /* Carry flag */
   SBIT(AC,       0xD0, 6); /* Auxiliary carry flag */
@@ -155,6 +181,9 @@ SFR(PSW,       0xD0); /* Program status word */
   SBIT(OV,       0xD0, 2); /* Overflow flag */
   SBIT(F1,       0xD0, 1); /* User-defined flag 0, bit addressable */
   SBIT(P,        0xD0, 0); /* Parity flag */
+#endif
+SFRBIT(ACC,0xE0,ACC_7,ACC_6,ACC_5,ACC_4,ACC_3,ACC_2,ACC_1,ACC_0)
+#ifndef __SFRBIT_IN_USE__
 SFR(ACC,       0xE0); /* Accumulator */
   SBIT(ACC_7,    0xE0, 7); /* Accumulator bit 7 */
   SBIT(ACC_6,    0xE0, 6); /* Accumulator bit 6 */
@@ -164,12 +193,18 @@ SFR(ACC,       0xE0); /* Accumulator */
   SBIT(ACC_2,    0xE0, 2); /* Accumulator bit 2 */
   SBIT(ACC_1,    0xE0, 1); /* Accumulator bit 1 */
   SBIT(ACC_0,    0xE0, 0); /* Accumulator bit 0 */
+#endif
+SFRBIT(IRCON2,0xE8,IRCON2_7,IRCON2_6,IRCON2_5,WDTIF,P1IF,UTX1IF,UTX0IF,P2IF)
+#ifndef __SFRBIT_IN_USE__
 SFR(IRCON2,    0xE8); /* Interrupt flags 5 */
   SBIT(WDTIF,    0xE8, 4); /* Watchdog Timer interrupt flag */
   SBIT(P1IF,     0xE8, 3); /* Port 1 Interrupt flag */
   SBIT(UTX1IF,   0xE8, 2); /* USART1 TX interrupt flag */
   SBIT(UTX0IF,   0xE8, 1); /* USART0 TX interrupt flag */
   SBIT(P2IF,     0xE8, 0); /* Port 2 interrupt flag */
+#endif
+SFRBIT(B,0xF0,B_7,B_6,B_5,B_4,B_3,B_2,B_1,B_0)
+#ifndef __SFRBIT_IN_USE__
 SFR(B,         0xF0); /* B Register */
   SBIT(B_7,      0xF0, 7); /* Register B bit 7 */
   SBIT(B_6,      0xF0, 6); /* Register B bit 6 */
@@ -179,6 +214,7 @@ SFR(B,         0xF0); /* B Register */
   SBIT(B_2,      0xF0, 2); /* Register B bit 2 */
   SBIT(B_1,      0xF0, 1); /* Register B bit 1 */
   SBIT(B_0,      0xF0, 0); /* Register B bit 0 */
+#endif
 
 /* ADC */
 SFR(ADCCON1,   0xB4); /* ADC control 1 */
@@ -294,6 +330,8 @@ SFR(T4CCTL1,   0xEE); /* Timer 4 channel 1 compare control */
 SFR(T4CC1,     0xEF); /* Timer 4 channel 1 compare value */
 
 /* Timer 1, 3, 4 join Interrupts */
+SFRBIT(TIMIF,0xD8,TIMIF_7,OVFIM,T4CH1IF,T4CH0IF,T4OVFIF,T3CH1IF,T3CH0IF,T3OVFIF)
+#ifndef __SFRBIT_IN_USE__
 SFR(TIMIF,     0xD8); /* Timers 1/3/4 joint interrupt mask/flags */
   SBIT(OVFIM,    0xD8, 6); /* Timer 1 overflow interrupt mask */
   SBIT(T4CH1IF,  0xD8, 5); /* Timer 4 channel 1 interrupt flag */
@@ -302,6 +340,7 @@ SFR(TIMIF,     0xD8); /* Timers 1/3/4 joint interrupt mask/flags */
   SBIT(T3CH1IF,  0xD8, 2); /* Timer 3 channel 1 interrupt flag */
   SBIT(T3CH0IF,  0xD8, 1); /* Timer 3 channel 0 interrupt flag */
   SBIT(T3OVFIF,  0xD8, 0); /* Timer 3 overflow interrupt flag */
+#endif
 
 /* USART 0 */
 SFR(U0CSR,     0x86); /* USART 0 control and status */
@@ -311,6 +350,8 @@ SFR(U0UCR,     0xC4); /* USART 0 UART control */
 SFR(U0GCR,     0xC5); /* USART 0 generic control */
 
 /* USART 1 */
+SFRBIT(U1CSR,0xF8,MODE,RE,SLAVE,FE,ERR,RX_BYTE,TX_BYTE,U1ACTIVE)
+#ifndef __SFRBIT_IN_USE__
 SFR(U1CSR,     0xF8); /* USART 1 control and status */
   SBIT(MODE,     0xF8, 7); /* USART mode select */
   SBIT(RE,       0xF8, 6); /* UART receiver enable */
@@ -320,6 +361,7 @@ SFR(U1CSR,     0xF8); /* USART 1 control and status */
   SBIT(RX_BYTE,  0xF8, 2); /* Receive byte status */
   SBIT(TX_BYTE,  0xF8, 1); /* Transmit byte status */
   SBIT(ACTIVE,   0xF8, 0); /* USART transmit/receive active status */
+#endif
 SFR(U1DBUF,    0xF9); /* USART 1 receive/transmit data buffer */
 SFR(U1BAUD,    0xFA); /* USART 1 baud-rate control */
 SFR(U1UCR,     0xFB); /* USART 1 UART control */
@@ -328,7 +370,7 @@ SFR(U1GCR,     0xFC); /* USART 1 Generic control */
 /* Watchdog Timer */
 SFR(WDCTL,     0xC9); /* Watchdog Timer Control */
 /*---------------------------------------------------------------------------
- * XREG Registers (0x6000-0x63FF), excluding RF and USB registers
+ * XREG Registers (0x6000 0x63FF), excluding RF and USB registers
  * (Table 2.2, page 31)
  *---------------------------------------------------------------------------*/
 SFRX(MONMUX ,    0x61A6); /* Operational amplifier mode control (cc2530/31) */
@@ -541,16 +583,16 @@ SFRX(USBFRML,  0x620C); /* Current Frame Number (Low Byte) */
 SFRX(USBFRMH,  0x620D); /* Current Frame Number (High Byte) */
 SFRX(USBINDEX, 0x620E); /* Current-Endpoint Index Register */
 SFRX(USBCTRL,  0x620F); /* USB Control Register */
-SFRX(USBMAXI,  0x6210); /* Max. Packet Size for IN Endpoint{1-5} */
+SFRX(USBMAXI,  0x6210); /* Max. Packet Size for IN Endpoint{1} */
 SFRX(USBCS0,   0x6211); /* EP0 Control and Status (USBINDEX = 0) */
-SFRX(USBCSIL,  0x6211); /* IN EP{1-5} Control and Status, Low */
-SFRX(USBCSIH,  0x6212); /* IN EP{1-5} Control and Status, High */
-SFRX(USBMAXO,  0x6213); /* Max. Packet Size for OUT EP{1-5} */
-SFRX(USBCSOL,  0x6214); /* OUT EP{1-5} Control and Status, Low */
-SFRX(USBCSOH,  0x6215); /* OUT EP{1-5} Control and Status, High */
+SFRX(USBCSIL,  0x6211); /* IN EP{1} Control and Status, Low */
+SFRX(USBCSIH,  0x6212); /* IN EP{1} Control and Status, High */
+SFRX(USBMAXO,  0x6213); /* Max. Packet Size for OUT EP{1} */
+SFRX(USBCSOL,  0x6214); /* OUT EP{1} Control and Status, Low */
+SFRX(USBCSOH,  0x6215); /* OUT EP{1} Control and Status, High */
 SFRX(USBCNT0,  0x6216); /* Number of Received Bytes in EP0 FIFO (USBINDEX = 0) */
-SFRX(USBCNTL,  0x6216); /* Number of Bytes in EP{1-5} OUT FIFO, Low */
-SFRX(USBCNTH,  0x6217); /* Number of Bytes in EP{1-5} OUT FIFO, High */
+SFRX(USBCNTL,  0x6216); /* Number of Bytes in EP{1} OUT FIFO, Low */
+SFRX(USBCNTH,  0x6217); /* Number of Bytes in EP{1} OUT FIFO, High */
 SFRX(USBF0,    0x6220); /* Endpoint-0 FIFO */
 SFRX(USBF1,    0x6222); /* Endpoint-1 FIFO */
 SFRX(USBF2,    0x6224); /* Endpoint-2 FIFO */

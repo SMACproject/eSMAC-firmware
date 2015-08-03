@@ -46,7 +46,7 @@
 #else
   __xdata unsigned char *macp = &X_IEEE_ADDR;
 #endif
-  
+
 char rf_rx_buf[128];
   
 static uint8_t uart0_state;

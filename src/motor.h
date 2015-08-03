@@ -41,13 +41,30 @@
 extern "C" {
 #endif
 
-#define MOTOR1_PIN1 0x01
-#define MOTOR1_PIN2 0x02
-#define MOTOR2_PIN1 0x04
-#define MOTOR2_PIN2 0x08
+#define MOTOR1_1 0x01
+#define MOTOR1_2 0x02
+#define MOTOR2_1 0x04
+#define MOTOR2_2 0x08
+
+#define MOTOR1_MASK (MOTOR1_1 | MOTOR1_2)
+#define MOTOR2_MASK (MOTOR2_1 | MOTOR2_2)
+
+#define MOTOR1_OFF    0x00
+#define MOTOR1_CW     MOTOR1_1
+#define MOTOR1_CCW    MOTOR1_2
+#define MOTOR1_BRAKE  (MOTOR1_1 | MOTOR1_2)
+
+#define MOTOR2_OFF    0x00
+#define MOTOR2_CW     MOTOR2_1
+#define MOTOR2_CCW    MOTOR2_2
+#define MOTOR2_BRAKE  (MOTOR2_1 | MOTOR2_2)
+
+extern char motor1_speed;
+extern char motor2_speed;
 
 void motor_init(void);
 void motor_set(char motors);
+void motor_set_speed(char motor_number, char speed);
 char motor_get(void);
 
 #ifdef __cplusplus

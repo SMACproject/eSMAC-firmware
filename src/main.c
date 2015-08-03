@@ -126,6 +126,8 @@ void main(void)
   uart_init();
   rtimer_init();
   rf_init();
+
+  // comment this line out to prevent bluetooth board from crashing
   printf("\nSMAC2.0 - [%x:%x]\n", SHORT_ADDR1, SHORT_ADDR0);
   
   EA = 1;

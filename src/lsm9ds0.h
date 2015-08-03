@@ -46,8 +46,8 @@
 
 int lsm9ds0_gyro_init(void);
 int lsm9ds0_accelerometer_init(void);
-struct gyro_context lsm9ds0_gyro_acquire(void);
-struct accelerometer_context lsm9ds0_accelerometer_acquire(void);
+void lsm9ds0_gyro_acquire(int16_t * x, int16_t * y, int16_t * z);
+void lsm9ds0_accelerometer_acquire(int16_t * x, int16_t * y, int16_t * z);
 
 #ifdef __cplusplus
 }
