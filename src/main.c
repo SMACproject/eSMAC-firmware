@@ -86,7 +86,7 @@ void delay_step(void)
   for (loop=0; loop < SPEED_STEP; loop++) clock_delay_usec(100);
 }
 
-char is_auto_run = 1;
+char is_auto_run = 0;
 char is_streaming_imu = 0;
 
 static uint8_t uart0_state;

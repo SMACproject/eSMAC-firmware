@@ -37,8 +37,10 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
+#include "config.h"
 #include "cc253x.h"
 #include "uart.h"
+#include "radio.h"
 #include "json.h"
 
 #if defined __IAR_SYSTEMS_ICC__
@@ -93,7 +95,7 @@ void rf_init(void)
   destination0 = 255;
   destination1 = 255;
 
-  FREQCTRL = 11 + ((13-11)*5);
+  FREQCTRL = 11 + ((RADIO_CHANNEL-11)*5);
 
   RFIRQM0 |= (1<<6);
   IEN2 |= (1<<0);

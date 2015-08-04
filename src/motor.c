@@ -34,6 +34,7 @@
  *
  */
 
+#include "config.h"
 #include "cc253x.h"
 #include "sfr-bits.h"
 #include "motor.h"
@@ -56,8 +57,10 @@ char motor2_speed = 50;
 
 void motor_init(void)
 {
-  PERCFG &= ~(0x40);                 /* timer 1 alternative 0 location */
-  //P2DIR = (P2DIR & ~0xc0) | 0xc0;    /* give priority to timer 1 chanels 2-3 */
+#if CONFIG_MOTOR_PWM_ENABLE
+  PERCFG &= ~PERCFG_T1CFG;           /* timer 1 alternative 0 location */
+  P2DIR = (P2DIR & ~0xC0) | 0xC0;    /* give priority to timer 1 chanels 2-3 */
+#endif
   P0SEL &= ~(MOTOR1_PIN1_MASK | MOTOR1_PIN2_MASK | MOTOR2_PIN1_MASK | MOTOR2_PIN2_MASK);    /* general-purpose IO */
   P0DIR |=  (MOTOR1_PIN1_MASK | MOTOR1_PIN2_MASK | MOTOR2_PIN1_MASK | MOTOR2_PIN2_MASK);    /* for output*/
 
@@ -73,7 +76,7 @@ void motor_init(void)
   T1CCTL2 |= 0x24;   /* channel 2 output compare; clear on compare, set on 0*/
   T1CCTL3 |= 0x24;   /* channel 3 output compare; clear on compare, set on 0*/
 
-  T1CC2L = (100 - motor1_speed);
+  T1CC2L = 100 - motor1_speed;
   T1CC2H = 0;
   T1CC3L = motor2_speed;
   T1CC3H = 0;
@@ -93,6 +96,7 @@ void motor_set_speed(char motor_number, char speed)
 
 void motor_set(char motors)
 {
+#if CONFIG_MOTOR_PWM_ENABLE
   if ((motors & MOTOR1_MASK) == MOTOR1_OFF) {
     P0SEL &= ~MOTOR1_PIN2_MASK; // general-purpose IO
     MOTOR1_PIN1 = 0;
@@ -102,7 +106,7 @@ void motor_set(char motors)
     P0SEL |=  MOTOR1_PIN2_MASK; // peripheral IO
 
     if ((motors & MOTOR1_MASK) == MOTOR1_CW) {
-      motor_set_speed(1, (100-motor1_speed));
+      motor_set_speed(1, 100-motor1_speed);
       MOTOR1_PIN1 = 1;
     } else {
       motor_set_speed(1, motor1_speed);
@@ -119,13 +123,19 @@ void motor_set(char motors)
     P0SEL |= MOTOR2_PIN2_MASK; // peripheral IO
 
     if ((motors & MOTOR2_MASK) == MOTOR2_CW) {
-      motor_set_speed(2, (100-motor2_speed));
+      motor_set_speed(2, 100-motor2_speed);
       MOTOR2_PIN1 = 1;
     } else {
       motor_set_speed(2, motor2_speed);
       MOTOR2_PIN1 = 0;
     }
   }
+#else
+  MOTOR1_PIN1 = motors & 0x01;
+  MOTOR1_PIN2 = (motors & 0x02) >> 1;
+  MOTOR2_PIN1 = (motors & 0x04) >> 2;
+  MOTOR2_PIN2 = (motors & 0x08) >> 3;
+#endif
 
   motors_status = motors;
 }

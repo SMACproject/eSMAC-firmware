@@ -41,6 +41,12 @@
 extern "C" {
 #endif
 
+#if defined CONFIG_RADIO_CHANNEL
+#define RADIO_CHANNEL CONFIG_RADIO_CHANNEL
+#else
+#define RADIO_CHANNEL   13 /* any number between 11-26, note that channel 11 is buggy */
+#endif
+
 void rf_init(void);
 void rf_send(char *pbuf , int len);
 void rf_receive_isr(void);
