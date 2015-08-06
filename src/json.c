@@ -344,6 +344,7 @@ int json_parser(char *json_string) {
                     flash_erase_page(112);
                     flash_erase_page(113);
                     flash_erase_page(114);
+                    led_set(0);
                     led_set(LED1);
                     while (flash_count < 6000) {
                       lsm9ds0_gyro_acquire(&mygyro.x, &mygyro.y, &mygyro.z);
@@ -388,6 +389,7 @@ int json_parser(char *json_string) {
                       mygyro.y = (uint16_t)read_buffer[0] << 8 | read_buffer[1];
                       mygyro.z = (uint16_t)read_buffer[2] << 8 | read_buffer[3];
                       read_count += 4;
+                      memset(imu_buf, 0, sizeof(imu_buf));
                       sprintf(imu_buf, "\n%5.0i\t%5.0i\t%5.0i\t%5.0i\t%5.0i\t%5.0i", myaccel.x, myaccel.y, myaccel.z, mygyro.x, mygyro.y, mygyro.z);
                       rf_send(imu_buf, 60);
                       clock_delay_usec(10000);
@@ -395,6 +397,7 @@ int json_parser(char *json_string) {
                     led_set(0);
                   }
                   if (jsoneq(json_string, &t[i+1], "stream") == 0) {
+                    led_set(0);
                     led_set(LED1);
                     read_count = 0;
                     
