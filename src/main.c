@@ -131,66 +131,19 @@ void main(void)
   printf("\nSMAC2.0 - [%x:%x]\n", SHORT_ADDR1, SHORT_ADDR0);
   
   EA = 1;
-  
   MEMCTR = 7;
   
-  //flash_erase_page(112);
-  //flash_erase_page(113);
-  //flash_erase_page(114);
+  /* connect temperature sensor to the SoC */
+  ATEST = 1;
+#if defined __IAR_SYSTEMS_ICC__
+  TR0 = 1;
+#else
+  TESTREG0 = 1;
+#endif
+  APCFG = 0; /* disables input channels */
   
   while(1)
   {
-    /*mygyro = lsm9ds0_gyro_acquire();
-    myaccel = lsm9ds0_accelerometer_acquire();
-    
-    if (flash_count < 6000) {
-      led_set(LED1);
-      flash_buffer[0] = (myaccel.x >> 8) & 0x00FF;
-      flash_buffer[1] = myaccel.x & 0x00FF;
-      flash_buffer[2] = (myaccel.y >> 8) & 0x00FF;
-      flash_buffer[3] = myaccel.y & 0x00FF;
-      flash_dma_write(flash_buffer, 4, ((uint32_t)112 << 11) + flash_count);
-      flash_count += 4;
-      
-      flash_buffer[0] = (myaccel.z >> 8) & 0x00FF;
-      flash_buffer[1] = myaccel.z & 0x00FF;
-      flash_buffer[2] = (mygyro.x >> 8) & 0x00FF;
-      flash_buffer[3] = mygyro.x & 0x00FF;
-      flash_dma_write(flash_buffer, 4, ((uint32_t)112 << 11) + flash_count);
-      flash_count += 4;
-      
-      flash_buffer[0] = (mygyro.y >> 8) & 0x00FF;
-      flash_buffer[1] = mygyro.y & 0x00FF;
-      flash_buffer[2] = (mygyro.z >> 8) & 0x00FF;
-      flash_buffer[3] = mygyro.z & 0x00FF;
-      flash_dma_write(flash_buffer, 4, ((uint32_t)112 << 11) + flash_count);
-      flash_count += 4;
-      
-      clock_delay_usec(10000);
-      //printf("\nax:%5.0i\tay:%5.0i\taz:%5.0i\tgx:%5.0i\tgy:%5.0i\tgz:%5.0i", myaccel.x, myaccel.y, myaccel.z, mygyro.x, mygyro.y, mygyro.z);
-    }
-    else {
-      if (read_count < 6000) {
-        led_set(0);
-        flash_dma_read(read_buffer, 4, ((uint32_t)112 << 11) + read_count);
-        myaccel.x = (uint16_t)read_buffer[0] << 8 | read_buffer[1];
-        myaccel.y = (uint16_t)read_buffer[2] << 8 | read_buffer[3];
-        read_count += 4;
-        flash_dma_read(read_buffer, 4, ((uint32_t)112 << 11) + read_count);
-        myaccel.z = (uint16_t)read_buffer[0] << 8 | read_buffer[1];
-        mygyro.x = (uint16_t)read_buffer[2] << 8 | read_buffer[3];
-        read_count += 4;
-        flash_dma_read(read_buffer, 4, ((uint32_t)112 << 11) + read_count);
-        mygyro.y = (uint16_t)read_buffer[0] << 8 | read_buffer[1];
-        mygyro.z = (uint16_t)read_buffer[2] << 8 | read_buffer[3];
-        read_count += 4;
-        
-        printf("\nax:%5.0i\tay:%5.0i\taz:%5.0i\tgx:%5.0i\tgy:%5.0i\tgz:%5.0i", myaccel.x, myaccel.y, myaccel.z, mygyro.x, mygyro.y, mygyro.z);
-      }
-    }*/
-    
-    //printf("\nax:%5.0i\tay:%5.0i\taz:%5.0i\tgx:%5.0i\tgy:%5.0i\tgz:%5.0i", myaccel.x, myaccel.y, myaccel.z, mygyro.x, mygyro.y, mygyro.z);
-    
     if( uart0_state == UART0_RECEIVED )
     {
       uart0_state = UART0_SENDING;
@@ -256,35 +209,6 @@ void main(void)
   }
 }
 
-/*
-void timer1_init()
-{
-  T1CTL = 0x0C;
-  T1CCTL0 = 0x44;
-  T1STAT = 0x00;
-
-  T1IE = 1; // IEN1 bit 1
-
-  T1CC0L = 250; // 1ms timeout
-  T1CC0H = 0;
-}
-*/
-
-/*
-void timer1_disable()
-{
-  T1CTL &= ~( 1<< 1);
-}
-
-void timer1_enable()
-{
-  T1CTL |= ( 1 << 1 );  // MODE = 0x10;
-  T1STAT = 0x00;
-  T1CNTH = 0;
-  T1CNTL = 0;
-}
-*/
-
 void uart0_receiving_timeout (void)
 {
   if (uart0_state == UART0_RECEIVING) {
@@ -303,17 +227,15 @@ void uart0_isr (void) __interrupt (URX0_VECTOR)
 #endif
 {
   URX0IF = 0;
-  if (serial_rxpos < 128) {
-    serial_rxbuf[serial_rxpos] = U0DBUF;
-    serial_rxpos++;
-    serial_rxlen++;
-  }
+
+  if (serial_rxpos >= 128 || uart0_state == UART0_SENDING) return;
+
+  serial_rxbuf[serial_rxpos] = U0DBUF;
+  serial_rxpos++;
+  serial_rxlen++;
 
   uart0_state = UART0_RECEIVING;
   rtimer_schedule(100, uart0_receiving_timeout);
-  //led_set(LED1);
-  
-  //timer1_enable();
 }
 
 #if defined __IAR_SYSTEMS_ICC__

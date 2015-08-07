@@ -4,6 +4,7 @@ clean: clean-led clean-motor clean-imu
 # Rules to build LED module
 #
 led:
+	@echo "*** BUILDING LED MODULE ***"
 	make -C build/led all
 
 clean-led:
@@ -16,6 +17,7 @@ install-led: led
 # Rules to build motor module
 #
 motor:
+	@echo "*** BUILDING MOTOR MODULE ***"
 	make -C build/motor all
 
 clean-motor:
@@ -28,6 +30,7 @@ install-motor: motor
 # Rules to build IMU module
 #
 imu:
+	@echo "*** BUILDING IMU MODULE ***"
 	make -C build/imu all
 
 clean-imu:

@@ -44,6 +44,7 @@
 #include "motor.h"
 #include "flash.h"
 #include "radio.h"
+#include "sensor.h"
 #include "lsm330dlc.h"
 #include "lsm9ds0.h"
 
@@ -69,8 +70,8 @@ char led = 0;
 char motor = 0;
 #endif
 
-char imu_buf[128];
-int  imu_len = 0;
+char reply_buf[128];
+int  reply_len = 0;
   
 uint8_t flash_buffer[4];
 uint8_t read_buffer[4];
@@ -91,11 +92,16 @@ int json_parser(char *json_string) {
 	jsmn_parser p;
 	jsmntok_t t[20]; /* We expect no more than 20 tokens */
         
-        char buffer[50];
-        int res;
-        char * pEnd;
+  char buffer[50];
+  int res;
+  char * pEnd;
 
-        memset(buffer, 0, sizeof(buffer));
+  uint16_t sensor_reading;
+  float sane = 0;
+  uint8_t dec;
+  float frac;
+
+  memset(buffer, 0, sizeof(buffer));
 	jsmn_init(&p);
         
 	r = jsmn_parse(&p, json_string, strlen(json_string), t, sizeof(t)/sizeof(t[0]));
@@ -188,12 +194,84 @@ int json_parser(char *json_string) {
             }
             i++;
           } else {
-            printf("Unexpected key: %.*s (%i:%i)\n", t[i].end-t[i].start,
-                   json_string + t[i].start, t[i].type, t[i].size);
+/*#ifdef CONFIG_DONT_HAVE_SPRINTF_WITH_STRING_LENGTH_FORMATTING
+            strncpy(buffer, json_string + t[i].start, t[i].end-t[i].start);
+            printf("Unexpected key: %s (%i:%i)\n", buffer, t[i].type, t[i].size);
+#else
+            sprintf(buffer, "Unexpected key: %.*s (%i:%i)\n", t[i].end-t[i].start,
+                json_string + t[i].start, t[i].type, t[i].size);
+            printf("%s", buffer);
+#endif*/
           }
 	}
         
         led_set(led);
+
+        /*
+         * temporary temperature and battery sensor JSON string handler
+         */
+
+        /* Loop over all keys of the root object */
+        for (i = 1; i < r; i++) {
+          if (jsoneq(json_string, &t[i], "sensor") == 0) {
+                        if (jsoneq(json_string, &t[i+1], "temperature") == 0) {
+                          /*
+                           * Temperature:
+                           * Using 1.25V ref. voltage (1250mV).
+                           * Typical AD Output at 25 degC: 1480
+                           * Typical Co-efficient     : 4.5 mV/degC
+                           *
+                           * Thus, at 12bit decimation (and ignoring the VDD co-efficient as well
+                           * as offsets due to lack of calibration):
+                           *
+                           *          AD - 1480
+                           * T = 25 + ---------
+                           *              4.5
+                           */
+                          sensor_reading = sensor_temperature();
+                          sane = 25 + ((sensor_reading - 1480) / 4.5);
+                          dec = sane;
+                          frac = sane - dec;
+                          memset(reply_buf, 0, sizeof(reply_buf));
+                          sprintf(reply_buf,"Temp=%d.%02u C (%d)\n", dec, (unsigned int)(frac*100), sensor_reading);
+                          rf_send(reply_buf, 25);
+                        }
+                        if (jsoneq(json_string, &t[i+1], "battery") == 0) {
+                          /*
+                           * Power Supply Voltage.
+                           * Using 1.25V ref. voltage.
+                           * AD Conversion on VDD/3
+                           *
+                           * Thus, at 12bit resolution:
+                           *
+                           *          ADC x 1.15 x 3
+                           * Supply = -------------- V
+                           *               2047
+                           */
+                          sensor_reading = sensor_battery();
+                          sane = sensor_reading * 1.15 * 3 / 2047;
+                          dec = sane;
+                          frac = sane - dec;
+                          memset(reply_buf, 0, sizeof(reply_buf));
+                          sprintf(reply_buf,"Supply=%d.%02u V (%d)\n", dec, (unsigned int)(frac*100), sensor_reading);
+                          rf_send(reply_buf, 25);
+                        }
+                        i++;
+          } else {
+/*#ifdef CONFIG_DONT_HAVE_SPRINTF_WITH_STRING_LENGTH_FORMATTING
+            strncpy(buffer, json_string + t[i].start, t[i].end-t[i].start);
+            printf("Unexpected key: %s (%i:%i)\n", buffer, t[i].type, t[i].size);
+#else
+            sprintf(buffer, "Unexpected key: %.*s (%i:%i)\n", t[i].end-t[i].start,
+                json_string + t[i].start, t[i].type, t[i].size);
+            printf("%s", buffer);
+#endif*/
+          }
+        }
+
+        /*
+         * end of temporary temperature and battery sensor JSON string handler
+         */
 #endif
 #if OBJECT_LED1
         led = led_get();
@@ -219,8 +297,14 @@ int json_parser(char *json_string) {
             }
             i++;
           } else {
-            /*printf("Unexpected key: %.*s (%i:%i)\n", t[i].end-t[i].start,
-                   json_string + t[i].start, t[i].type, t[i].size);*/
+/*#ifdef CONFIG_DONT_HAVE_SPRINTF_WITH_STRING_LENGTH_FORMATTING
+            strncpy(buffer, json_string + t[i].start, t[i].end-t[i].start);
+            printf("Unexpected key: %s (%i:%i)\n", buffer, t[i].type, t[i].size);
+#else
+            sprintf(buffer, "Unexpected key: %.*s (%i:%i)\n", t[i].end-t[i].start,
+                json_string + t[i].start, t[i].type, t[i].size);
+            printf("%s", buffer);
+#endif*/
           }
 	}
         
@@ -327,8 +411,14 @@ int json_parser(char *json_string) {
                     motor2_speed = 99;
                   }
                 } else {
-                  /*printf("Unexpected key: %.*s (%i)\n", t[i].end-t[i].start,
-                         json_string + t[i].start, t[i].size);*/
+/*#ifdef CONFIG_DONT_HAVE_SPRINTF_WITH_STRING_LENGTH_FORMATTING
+            strncpy(buffer, json_string + t[i].start, t[i].end-t[i].start);
+            printf("Unexpected key: %s (%i:%i)\n", buffer, t[i].type, t[i].size);
+#else
+            sprintf(buffer, "Unexpected key: %.*s (%i:%i)\n", t[i].end-t[i].start,
+                json_string + t[i].start, t[i].type, t[i].size);
+            printf("%s", buffer);
+#endif*/
     }
   }
         motor_set(motor);
@@ -374,6 +464,7 @@ int json_parser(char *json_string) {
                     led_set(0);
                   }
                   if (jsoneq(json_string, &t[i+1], "download") == 0) {
+                    led_set(0);
                     led_set(LED1);
                     read_count = 0;
                     while(read_count < 6000){
@@ -389,9 +480,9 @@ int json_parser(char *json_string) {
                       mygyro.y = (uint16_t)read_buffer[0] << 8 | read_buffer[1];
                       mygyro.z = (uint16_t)read_buffer[2] << 8 | read_buffer[3];
                       read_count += 4;
-                      memset(imu_buf, 0, sizeof(imu_buf));
-                      sprintf(imu_buf, "\n%5.0i\t%5.0i\t%5.0i\t%5.0i\t%5.0i\t%5.0i", myaccel.x, myaccel.y, myaccel.z, mygyro.x, mygyro.y, mygyro.z);
-                      rf_send(imu_buf, 60);
+                      memset(reply_buf, 0, sizeof(reply_buf));
+                      sprintf(reply_buf, "\n%5.0i\t%5.0i\t%5.0i\t%5.0i\t%5.0i\t%5.0i", myaccel.x, myaccel.y, myaccel.z, mygyro.x, mygyro.y, mygyro.z);
+                      rf_send(reply_buf, 60);
                       clock_delay_usec(10000);
                     }
                     led_set(0);
@@ -407,8 +498,14 @@ int json_parser(char *json_string) {
                   }
                   i++;
 		} else {
-                  printf("Unexpected key: %.*s (%i)\n", t[i].end-t[i].start,
-                         json_string + t[i].start, t[i].size);
+/*#ifdef CONFIG_DONT_HAVE_SPRINTF_WITH_STRING_LENGTH_FORMATTING
+            strncpy(buffer, json_string + t[i].start, t[i].end-t[i].start);
+            printf("Unexpected key: %s (%i:%i)\n", buffer, t[i].type, t[i].size);
+#else
+            sprintf(buffer, "Unexpected key: %.*s (%i:%i)\n", t[i].end-t[i].start,
+                json_string + t[i].start, t[i].type, t[i].size);
+            printf("%s", buffer);
+#endif*/
 		}
 	}
 #endif
