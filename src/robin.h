@@ -34,8 +34,6 @@
 #ifndef __pkt_h__
 #define __pkt_h__
 
-#include <stdint.h>
-
 /* states for the packet reception state machine */
 enum {
   PKT_STATE_START,

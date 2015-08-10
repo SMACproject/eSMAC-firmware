@@ -41,8 +41,6 @@
 extern "C" {
 #endif
 
-#include <stdint.h>
-
 #define FLASH_PAGE_SIZE 2048
 
 #define READ_WHEN_NEED  0x00

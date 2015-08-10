@@ -41,6 +41,7 @@
 #include "cc253x.h"
 #include "uart.h"
 #include "radio.h"
+#include "jsmn.h"
 #include "json.h"
 
 #if defined __IAR_SYSTEMS_ICC__

@@ -41,8 +41,6 @@
 extern "C" {
 #endif
 
-#include <stdint.h>
-
 #define ONE_WIRE_TX 1
 
 #ifdef UART_CONF_STDOUT_PORT

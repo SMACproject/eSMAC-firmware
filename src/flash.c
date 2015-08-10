@@ -34,6 +34,7 @@
  *
  */
 
+#include "config.h"
 #include "compiler.h"
 #include "cc253x.h"
 #include "flash.h"

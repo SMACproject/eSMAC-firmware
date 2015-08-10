@@ -34,10 +34,19 @@
  *
  */
 
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 #include "config.h"
+#include "motor.h"
 #include "cc253x.h"
 #include "sfr-bits.h"
-#include "motor.h"
+#include "jsmn.h"
+#include "json.h"
+
+/* TODO workaround */
+#include "radio.h"
+char is_auto_run = 0;
 
 #define MOTOR1_PIN1   P0_0
 #define MOTOR1_PIN2   P0_4
@@ -54,6 +63,7 @@ static char motors_status = 0;
 /* motor_speedN should be set to an integer from 0 - 100 */
 char motor1_speed = 50;
 char motor2_speed = 50;
+char motor_speed_changed = 0;
 
 void motor_init(void)
 {
@@ -84,7 +94,6 @@ void motor_init(void)
 
 void motor_set_speed(char motor_number, char speed)
 {
-
   if (motor_number == 1) {
     T1CC2L = speed;
     T1CC2H = 0;
@@ -143,4 +152,143 @@ void motor_set(char motors)
 char motor_get(void)
 {
   return motors_status;
+}
+
+int json_parser(char *json_string)
+{
+  int i, r;
+  jsmn_parser p;
+  jsmntok_t t[JSON_MAX_TOKEN];
+  char buffer[JSON_STRING_BUFFER_SIZE];
+
+  memset(buffer, 0, sizeof(buffer));
+  jsmn_init(&p);
+
+  r = jsmn_parse(&p, json_string, strlen(json_string), t, sizeof(t)/sizeof(t[0]));
+  if (r < 0) {
+    printf("Failed to parse JSON: %d\n", r);
+    return 1;
+  }
+
+  /* Assume the top-level element is an object */
+  if (r < 1 || t[0].type != JSMN_OBJECT) {
+    printf("Object expected\n");
+    return 1;
+  }
+
+  for (i = 1; i < r; i++) {
+
+    if (jsoneq(json_string, &t[i], "motor1") == 0) {
+                if (jsoneq(json_string, &t[i+1], "cw") == 0) {
+                  motors_status |= MOTOR1_1;
+                  motors_status &= ~MOTOR1_2;
+                  rf_send("m1:1",4);
+                }
+                if (jsoneq(json_string, &t[i+1], "ccw") == 0) {
+                  motors_status &= ~MOTOR1_1;
+                  motors_status |= MOTOR1_2;
+                  rf_send("m1:1",4);
+                }
+                if (jsoneq(json_string, &t[i+1], "off") == 0) {
+                  motors_status &= ~MOTOR1_1;
+                  motors_status &= ~MOTOR1_2;
+                  rf_send("m1:0",4);
+                }
+                if (jsoneq(json_string, &t[i+1], "brake") == 0) {
+                  motors_status |= MOTOR1_1;
+                  motors_status |= MOTOR1_2;
+                }
+                i++;
+    } else if (jsoneq(json_string, &t[i], "motor2") == 0) {
+                if (jsoneq(json_string, &t[i+1], "cw") == 0) {
+                  motors_status |= MOTOR2_1;
+                  motors_status &= ~MOTOR2_2;
+                  rf_send("m2:1",4);
+                }
+                if (jsoneq(json_string, &t[i+1], "ccw") == 0) {
+                  motors_status &= ~MOTOR2_1;
+                  motors_status |= MOTOR2_2;
+                  rf_send("m2:1",4);
+                }
+                if (jsoneq(json_string, &t[i+1], "off") == 0) {
+                  motors_status &= ~MOTOR2_1;
+                  motors_status &= ~MOTOR2_2;
+                  rf_send("m2:0",4);
+                }
+                if (jsoneq(json_string, &t[i+1], "brake") == 0) {
+                  motors_status |= MOTOR2_1;
+                  motors_status |= MOTOR2_2;
+                }
+                i++;
+    } else if (jsoneq(json_string, &t[i], "mode") == 0) {
+                if (jsoneq(json_string, &t[i+1], "manual") == 0) {
+                  is_auto_run = 0;
+                }
+                if (jsoneq(json_string, &t[i+1], "auto") == 0) {
+                  is_auto_run = 1;
+                }
+              } else if (jsoneq(json_string, &t[i], "speed1") == 0) {
+                motor_speed_changed = 1;
+                if (jsoneq(json_string, &t[i+1], "1") == 0) {
+                  motor1_speed = 10;
+                } else if (jsoneq(json_string, &t[i+1], "2") == 0) {
+                  motor1_speed = 20;
+                } else if (jsoneq(json_string, &t[i+1], "3") == 0) {
+                  motor1_speed = 30;
+                } else if (jsoneq(json_string, &t[i+1], "4") == 0) {
+                  motor1_speed = 40;
+                } else if (jsoneq(json_string, &t[i+1], "5") == 0) {
+                  motor1_speed = 50;
+                } else if (jsoneq(json_string, &t[i+1], "6") == 0) {
+                  motor1_speed = 60;
+                } else if (jsoneq(json_string, &t[i+1], "7") == 0) {
+                  motor1_speed = 70;
+                } else if (jsoneq(json_string, &t[i+1], "8") == 0) {
+                  motor1_speed = 80;
+                } else if (jsoneq(json_string, &t[i+1], "9") == 0) {
+                  motor1_speed = 90;
+                } else if (jsoneq(json_string, &t[i+1], "10") == 0) {
+                  motor1_speed = 99;
+                }
+              } else if (jsoneq(json_string, &t[i], "speed2") == 0) {
+                motor_speed_changed = 1;
+                if (jsoneq(json_string, &t[i+1], "1") == 0) {
+                  motor2_speed = 10;
+                } else if (jsoneq(json_string, &t[i+1], "2") == 0) {
+                  motor2_speed = 20;
+                } else if (jsoneq(json_string, &t[i+1], "3") == 0) {
+                  motor2_speed = 30;
+                } else if (jsoneq(json_string, &t[i+1], "4") == 0) {
+                  motor2_speed = 40;
+                } else if (jsoneq(json_string, &t[i+1], "5") == 0) {
+                  motor2_speed = 50;
+                } else if (jsoneq(json_string, &t[i+1], "6") == 0) {
+                  motor2_speed = 60;
+                } else if (jsoneq(json_string, &t[i+1], "7") == 0) {
+                  motor2_speed = 70;
+                } else if (jsoneq(json_string, &t[i+1], "8") == 0) {
+                  motor2_speed = 80;
+                } else if (jsoneq(json_string, &t[i+1], "9") == 0) {
+                  motor2_speed = 90;
+                } else if (jsoneq(json_string, &t[i+1], "10") == 0) {
+                  motor2_speed = 99;
+                }
+              } else {
+/*#ifdef CONFIG_DONT_HAVE_SPRINTF_WITH_STRING_LENGTH_FORMATTING
+                strncpy(buffer, json_string + t[i].start, t[i].end-t[i].start);
+                printf("Unexpected key: %s (%i:%i)\n", buffer, t[i].type, t[i].size);
+#else
+                sprintf(buffer, "Unexpected key: %.*s (%i:%i)\n", t[i].end-t[i].start,
+                    json_string + t[i].start, t[i].type, t[i].size);
+                printf("%s", buffer);
+#endif*/
+              }
+
+  }
+
+  motor_set(motors_status);
+  //clock_delay_usec(60000);
+  //motor_set(0);
+
+  return 0;
 }

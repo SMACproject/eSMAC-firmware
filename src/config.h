@@ -41,6 +41,8 @@
 extern "C" {
 #endif
 
+#include <stdint.h>
+
 #if defined SDCC || defined __SDCC
 #define CONFIG_DONT_HAVE_STRTOL
 #define CONFIG_DONT_HAVE_SPRINTF_WITH_STRING_LENGTH_FORMATTING

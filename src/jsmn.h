@@ -25,11 +25,11 @@
 #ifndef __JSMN_H_
 #define __JSMN_H_
 
-#include <stddef.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include <stddef.h>
 
 /**
  * JSON type identifier. Basic types are:

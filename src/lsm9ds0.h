@@ -44,6 +44,7 @@
 #define LSM9DS0_GYRO_CS				SPI_CS2
 #define LSM9DS0_ACCELEROMETER_CS		SPI_CS1
 
+void imu_init(void);
 int lsm9ds0_gyro_init(void);
 int lsm9ds0_accelerometer_init(void);
 void lsm9ds0_gyro_acquire(int16_t * x, int16_t * y, int16_t * z);

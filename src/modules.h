@@ -1,8 +1,8 @@
 /*
- * json.c
+ * modules.h
  *
- * Created on: Jun 23, 2015
- *     Author: Ekawahyu Susilo
+ * Created on: Aug 10, 2015
+ *     Author: nodino
  *
  * Copyright (c) 2015, Chongqing Aisenke Electronic Technology Co., Ltd.
  * All rights reserved.
@@ -34,27 +34,32 @@
  *
  */
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include "config.h"
-#include "jsmn.h"
-#include "clock.h"
+#ifndef SRC_MODULES_H_
+#define SRC_MODULES_H_
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#if defined MODULE_LED
 #include "led.h"
+#define module_init(x) led_init(x)
+#elif defined MODULE_MOTOR
 #include "motor.h"
-#include "flash.h"
-#include "radio.h"
-#include "sensor.h"
+#define module_init(x) motor_init(x)
+#elif defined MODULE_IMU
 #include "lsm330dlc.h"
 #include "lsm9ds0.h"
+#define module_init(x) imu_init(x)
+#elif defined MODULE_BATTERY_WITH_SENSOR
+#define module_init(x) battery_sensor_init(x)
+#else
+#define module_init(x)
+#warning modules.h: module_init(x) is not defined, building a module requires initialization!
+#endif
 
-#include "json.h"
-
-int jsoneq(const char *json, jsmntok_t *tok, const char *s)
-{
-	if (tok->type == JSMN_STRING && (int) strlen(s) == tok->end - tok->start &&
-			strncmp(json + tok->start, s, tok->end - tok->start) == 0) {
-		return 0;
-	}
-	return -1;
+#ifdef __cplusplus
 }
+#endif
+
+#endif /* SRC_MODULES_H_ */

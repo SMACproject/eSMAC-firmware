@@ -1,9 +1,9 @@
 SRCDIR = ../../src
 
 MODULETYPE = imu
-MODULECFLAGS = -DOBJECT_LED1 -DOBJECT_IMU -DSPI1_ENABLE
+MODULECFLAGS = -DMODULE_IMU -DSPI1_ENABLE
 MODULESRC = main.c clock.c uart.c spi.c spi1.c spi-arch.c flash.c rtimer.c radio.c json.c jsmn.c
-MODULESRC += led.c lsm9ds0.c
+MODULESRC += lsm9ds0.c
 MODULEREL = $(MODULESRC:.c=.rel)
 
 #

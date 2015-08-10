@@ -34,8 +34,19 @@
  *
  */
 
-#include "cc253x.h"
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include "config.h"
 #include "led.h"
+#include "cc253x.h"
+#include "sfr-bits.h"
+#include "jsmn.h"
+#include "json.h"
+
+/* TODO workaround */
+#include "radio.h"
+#include "sensor.h"
 
 #define LED1_PIN   P1_0
 #define LED2_PIN   P1_1
@@ -48,6 +59,14 @@
 #define LED4_MASK  0x01
 
 static char leds_status = 0;
+
+uint16_t sensor_reading;
+float sane = 0;
+uint8_t dec;
+float frac;
+
+char reply_buf[128];
+int  reply_len = 0;
 
 void led_init(void)
 {
@@ -62,6 +81,7 @@ void led_init(void)
   leds_status = 0;
 }
 
+/* TODO this is not supposed to be here anymore */
 void led1_init(void)
 {
   P1SEL &= ~LED1_MASK;
@@ -82,4 +102,181 @@ void led_set(char leds)
 char led_get(void)
 {
   return leds_status;
+}
+
+int json_parser(char *json_string)
+{
+  int i, r, res;
+  jsmn_parser p;
+  jsmntok_t t[JSON_MAX_TOKEN];
+  char buffer[JSON_STRING_BUFFER_SIZE];
+  char * pEnd = NULL;
+
+  memset(buffer, 0, sizeof(buffer));
+  jsmn_init(&p);
+
+  r = jsmn_parse(&p, json_string, strlen(json_string), t, sizeof(t)/sizeof(t[0]));
+  if (r < 0) {
+    printf("Failed to parse JSON: %d\n", r);
+    return 1;
+  }
+
+  /* Assume the top-level element is an object */
+  if (r < 1 || t[0].type != JSMN_OBJECT) {
+    printf("Object expected\n");
+    return 1;
+  }
+
+  for (i = 1; i < r; i++) {
+          if (jsoneq(json_string, &t[i], "led1") == 0) {
+#ifdef CONFIG_DONT_HAVE_SPRINTF_WITH_STRING_LENGTH_FORMATTING
+            strncpy(buffer, json_string + t[i+1].start, t[i+1].end-t[i+1].start);
+            res = t[i+1].end-t[i+1].start;
+#else
+            res = sprintf(buffer, "%.*s", t[i+1].end-t[i+1].start,
+                          json_string + t[i+1].start);
+#endif
+            if(res) {
+#ifdef CONFIG_DONT_HAVE_STRTOL
+              if (atol(buffer) == 0) {leds_status &= ~LED1; rf_send("1of", 3);}
+              if (atol(buffer) == 1) {leds_status |= LED1; rf_send("1on", 3);}
+#else
+              if (strtol(buffer, &pEnd, 10) == 0) {leds_status &= ~LED1; rf_send("1of", 3);}
+              if (strtol(buffer, &pEnd, 10) == 1) {leds_status |= LED1; rf_send("1on", 3);}
+#endif
+            }
+            i++;
+          } else if (jsoneq(json_string, &t[i], "led2") == 0) {
+#ifdef CONFIG_DONT_HAVE_SPRINTF_WITH_STRING_LENGTH_FORMATTING
+            strncpy(buffer, json_string + t[i+1].start, t[i+1].end-t[i+1].start);
+            res = t[i+1].end-t[i+1].start;
+#else
+            res = sprintf(buffer, "%.*s", t[i+1].end-t[i+1].start,
+                          json_string + t[i+1].start);
+#endif
+            if(res) {
+#ifdef CONFIG_DONT_HAVE_STRTOL
+              if (atol(buffer) == 0) {leds_status &= ~LED2; rf_send("2of", 3);}
+              if (atol(buffer) == 1) {leds_status |= LED2; rf_send("2on", 3);}
+#else
+              if (strtol(buffer, &pEnd, 10) == 0) {leds_status &= ~LED2; rf_send("2of", 3);}
+              if (strtol(buffer, &pEnd, 10) == 1) {leds_status |= LED2; rf_send("2on", 3);}
+#endif
+            }
+            i++;
+          } else if (jsoneq(json_string, &t[i], "led3") == 0) {
+#ifdef CONFIG_DONT_HAVE_SPRINTF_WITH_STRING_LENGTH_FORMATTING
+            strncpy(buffer, json_string + t[i+1].start, t[i+1].end-t[i+1].start);
+            res = t[i+1].end-t[i+1].start;
+#else
+            res = sprintf(buffer, "%.*s", t[i+1].end-t[i+1].start,
+                          json_string + t[i+1].start);
+#endif
+            if(res) {
+#ifdef CONFIG_DONT_HAVE_STRTOL
+              if (atol(buffer) == 0) {leds_status &= ~LED3; rf_send("3of", 3);}
+              if (atol(buffer) == 1) {leds_status |= LED3; rf_send("3on", 3);}
+#else
+              if (strtol(buffer, &pEnd, 10) == 0) {leds_status &= ~LED3; rf_send("3of", 3);}
+              if (strtol(buffer, &pEnd, 10) == 1) {leds_status |= LED3; rf_send("3on", 3);}
+#endif
+            }
+            i++;
+          } else if (jsoneq(json_string, &t[i], "led4") == 0) {
+#ifdef CONFIG_DONT_HAVE_SPRINTF_WITH_STRING_LENGTH_FORMATTING
+            strncpy(buffer, json_string + t[i+1].start, t[i+1].end-t[i+1].start);
+            res = t[i+1].end-t[i+1].start;
+#else
+            res = sprintf(buffer, "%.*s", t[i+1].end-t[i+1].start,
+                          json_string + t[i+1].start);
+#endif
+            if(res) {
+#ifdef CONFIG_DONT_HAVE_STRTOL
+              if (atol(buffer) == 0) {leds_status &= ~LED4; rf_send("4of", 3);}
+              if (atol(buffer) == 1) {leds_status |= LED4; rf_send("4on", 3);}
+#else
+              if (strtol(buffer, &pEnd, 10) == 0) {leds_status &= ~LED4; rf_send("4of", 3);}
+              if (strtol(buffer, &pEnd, 10) == 1) {leds_status |= LED4; rf_send("4on", 3);}
+#endif
+            }
+            i++;
+          } else {
+/*#ifdef CONFIG_DONT_HAVE_SPRINTF_WITH_STRING_LENGTH_FORMATTING
+            strncpy(buffer, json_string + t[i].start, t[i].end-t[i].start);
+            printf("Unexpected key: %s (%i:%i)\n", buffer, t[i].type, t[i].size);
+#else
+            sprintf(buffer, "Unexpected key: %.*s (%i:%i)\n", t[i].end-t[i].start,
+                json_string + t[i].start, t[i].type, t[i].size);
+            printf("%s", buffer);
+#endif*/
+          }
+  }
+
+  led_set(leds_status);
+
+  /*
+   * TODO temporary temperature and battery sensor JSON string handler
+   */
+  for (i = 1; i < r; i++) {
+    if (jsoneq(json_string, &t[i], "sensor") == 0) {
+                  if (jsoneq(json_string, &t[i+1], "temperature") == 0) {
+                    /*
+                     * Temperature:
+                     * Using 1.25V ref. voltage (1250mV).
+                     * Typical AD Output at 25 degC: 1480
+                     * Typical Co-efficient     : 4.5 mV/degC
+                     *
+                     * Thus, at 12bit decimation (and ignoring the VDD co-efficient as well
+                     * as offsets due to lack of calibration):
+                     *
+                     *          AD - 1480
+                     * T = 25 + ---------
+                     *              4.5
+                     */
+                    sensor_reading = sensor_temperature();
+                    sane = 25 + ((sensor_reading - 1480) / 4.5);
+                    dec = sane;
+                    frac = sane - dec;
+                    memset(reply_buf, 0, sizeof(reply_buf));
+                    sprintf(reply_buf,"Temp=%d.%02u C (%d)\n", dec, (unsigned int)(frac*100), sensor_reading);
+                    rf_send(reply_buf, 25);
+                  }
+                  if (jsoneq(json_string, &t[i+1], "battery") == 0) {
+                    /*
+                     * Power Supply Voltage.
+                     * Using 1.25V ref. voltage.
+                     * AD Conversion on VDD/3
+                     *
+                     * Thus, at 12bit resolution:
+                     *
+                     *          ADC x 1.15 x 3
+                     * Supply = -------------- V
+                     *               2047
+                     */
+                    sensor_reading = sensor_battery();
+                    sane = sensor_reading * 1.15 * 3 / 2047;
+                    dec = sane;
+                    frac = sane - dec;
+                    memset(reply_buf, 0, sizeof(reply_buf));
+                    sprintf(reply_buf,"Supply=%d.%02u V (%d)\n", dec, (unsigned int)(frac*100), sensor_reading);
+                    rf_send(reply_buf, 25);
+                  }
+                  i++;
+    } else {
+/*#ifdef CONFIG_DONT_HAVE_SPRINTF_WITH_STRING_LENGTH_FORMATTING
+      strncpy(buffer, json_string + t[i].start, t[i].end-t[i].start);
+      printf("Unexpected key: %s (%i:%i)\n", buffer, t[i].type, t[i].size);
+#else
+      sprintf(buffer, "Unexpected key: %.*s (%i:%i)\n", t[i].end-t[i].start,
+          json_string + t[i].start, t[i].type, t[i].size);
+      printf("%s", buffer);
+#endif*/
+    }
+  }
+
+  /*
+   * end of temporary temperature and battery sensor JSON string handler
+   */
+
+  return 0;
 }

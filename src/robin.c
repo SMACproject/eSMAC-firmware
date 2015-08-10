@@ -42,6 +42,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "config.h"
 #include "cc253x.h"
 #include "sfr-bits.h"
 #include "clock.h"

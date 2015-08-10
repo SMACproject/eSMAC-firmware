@@ -37,12 +37,16 @@
 #ifndef JSON_H_
 #define JSON_H_
 
-#include <stddef.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+#include <stddef.h>
+
+#define JSON_MAX_TOKEN            20 /* We expect no more than max tokens */
+#define JSON_STRING_BUFFER_SIZE   50 /* For JSON string manipulation if needed */
+
+int jsoneq(const char *json, jsmntok_t *tok, const char *s);
 int json_parser(char *json_string);
 
 #ifdef __cplusplus

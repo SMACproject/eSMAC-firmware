@@ -41,8 +41,6 @@
 extern "C" {
 #endif
 
-#include <stdint.h>
-
 void clock_init(void);
 void clock_delay_usec(uint16_t usec);
 
