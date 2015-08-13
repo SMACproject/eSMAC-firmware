@@ -79,13 +79,13 @@ void main(void)
   MEMCTR = 7;
   
   /* TODO connect temperature sensor to the SoC, part of sensor.c init */
-  ATEST = 1;
+  /*ATEST = 1;
 #if defined __IAR_SYSTEMS_ICC__
   TR0 = 1;
 #else
   TESTREG0 = 1;
 #endif
-  APCFG = 0; /* disables input channels */
+  APCFG = 0; // disables input channels */
   
   while(1)
   {

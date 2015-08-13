@@ -39,15 +39,6 @@
 #include <stdlib.h>
 #include "config.h"
 #include "jsmn.h"
-#include "clock.h"
-#include "led.h"
-#include "motor.h"
-#include "flash.h"
-#include "radio.h"
-#include "sensor.h"
-#include "lsm330dlc.h"
-#include "lsm9ds0.h"
-
 #include "json.h"
 
 int jsoneq(const char *json, jsmntok_t *tok, const char *s)
