@@ -53,8 +53,8 @@
 char rf_rx_buf[128];
   
 static uint8_t uart0_state;
-char destination0;
-char destination1;
+uint8_t destination0;
+uint8_t destination1;
 
 void rf_init(void)
 {
@@ -133,7 +133,7 @@ void rf_receive_isr(void)
     uart0_sendbuf( rf_rx_buf , rf_rx_len);
     
 // this is just a temporary workaround to use LED module as a dongle to read IMU data
-#if MODULE_LED
+#if 0 //MODULE_LED
 #else
     // parse with jsmn and execute
     json_parser(rf_rx_buf);

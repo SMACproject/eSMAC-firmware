@@ -1,7 +1,7 @@
 SRCDIR = ../../src
 
 MODULETYPE = motor
-MODULECFLAGS = -DMODULE_MOTOR
+MODULECFLAGS = -DMODULE_MOTOR --less-pedantic
 MODULESRC = main.c clock.c uart.c rtimer.c radio.c json.c jsmn.c motor.c
 MODULEREL = $(MODULESRC:.c=.rel)
 

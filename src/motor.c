@@ -47,7 +47,7 @@
 /* TODO workaround */
 #include "radio.h"
 char is_auto_run = 0;
-
+/*
 #define MOTOR1_PIN1   P0_0
 #define MOTOR1_PIN2   P0_4
 #define MOTOR2_PIN1   P0_1
@@ -57,14 +57,13 @@ char is_auto_run = 0;
 #define MOTOR1_PIN2_MASK  0x10
 #define MOTOR2_PIN1_MASK  0x02
 #define MOTOR2_PIN2_MASK  0x20
-
+*/
 #define LED1_PIN   P1_0
 #define LED1_MASK  0x01
 
 #define LED1 0x01
 #define LED_ALL LED1
 
-/*
 #define MOTOR1_PIN1   P1_4
 #define MOTOR1_PIN2   P0_4
 #define MOTOR2_PIN1   P1_1
@@ -74,14 +73,13 @@ char is_auto_run = 0;
 #define MOTOR1_PIN2_MASK  0x10
 #define MOTOR2_PIN1_MASK  0x02
 #define MOTOR2_PIN2_MASK  0x20
-*/
 
 static char motors_status = 0;
 static char leds_status = 0;
 
 /* motor_speedN should be set to an integer from 0 - 100 */
-char motor1_speed = 50;
-char motor2_speed = 50;
+char motor1_speed = 75;
+char motor2_speed = 75;
 char motor_speed_changed = 0;
 
 void motor_init(void)
@@ -98,10 +96,10 @@ void motor_init(void)
   //T1CTL = ???
   PERCFG &= ~PERCFG_T1CFG; /* timer 1 alternative 0 location */
 
-  T3CTL = (0x80 | 0x02);
+  T3CTL = (0xA0 | 0x02);
   PERCFG &= ~PERCFG_T3CFG; /* timer 3 alternative 0 location */
 
-  T4CTL = (0x80 | 0x02);
+  T4CTL = (0xA0 | 0x02);
   PERCFG &= ~PERCFG_T4CFG; /* timer 4 alternative 0 location */
 
   P2DIR |= 0xC0; /* give priority to timer 1 channels 2-3 */
@@ -131,14 +129,14 @@ void motor_init(void)
   T4CTL |= 0x10; // start timer 4
 #endif
 
-  P0SEL &= ~(MOTOR1_PIN1_MASK | MOTOR1_PIN2_MASK | MOTOR2_PIN1_MASK | MOTOR2_PIN2_MASK); /* general-purpose IO */
-  P0DIR |=  (MOTOR1_PIN1_MASK | MOTOR1_PIN2_MASK | MOTOR2_PIN1_MASK | MOTOR2_PIN2_MASK); /* for output*/
+  //P0SEL &= ~(MOTOR1_PIN1_MASK | MOTOR1_PIN2_MASK | MOTOR2_PIN1_MASK | MOTOR2_PIN2_MASK); /* general-purpose IO */
+  //P0DIR |=  (MOTOR1_PIN1_MASK | MOTOR1_PIN2_MASK | MOTOR2_PIN1_MASK | MOTOR2_PIN2_MASK); /* for output*/
 
-  //P0SEL &= ~(MOTOR1_PIN2_MASK | MOTOR2_PIN2_MASK); /* general-purpose IO */
-  //P1SEL &= ~(MOTOR1_PIN1_MASK | MOTOR2_PIN1_MASK);
+  P0SEL &= ~(MOTOR1_PIN2_MASK | MOTOR2_PIN2_MASK); /* general-purpose IO */
+  P1SEL &= ~(MOTOR1_PIN1_MASK | MOTOR2_PIN1_MASK);
 
-  //P0DIR |=  (MOTOR1_PIN2_MASK | MOTOR2_PIN2_MASK); /* for output*/
-  //P1DIR |=  (MOTOR1_PIN1_MASK | MOTOR2_PIN1_MASK);
+  P0DIR |=  (MOTOR1_PIN2_MASK | MOTOR2_PIN2_MASK); /* for output*/
+  P1DIR |=  (MOTOR1_PIN1_MASK | MOTOR2_PIN1_MASK);
 
   MOTOR1_PIN1 = 0;
   MOTOR1_PIN2 = 0;
