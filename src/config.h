@@ -48,11 +48,13 @@ extern "C" {
 #define CONFIG_DONT_HAVE_SPRINTF_WITH_STRING_LENGTH_FORMATTING
 #endif
 
-#define CONFIG_RADIO_CHANNEL      18
+#define CONFIG_RADIO_CHANNEL      14
 
 #define CONFIG_MOTOR_PWM_ENABLE   0
 
 #define UART_CONF_STDOUT_PORT     0
+
+#define CONFIG_ABU_DHABI          1
 
 #ifdef __cplusplus
 }

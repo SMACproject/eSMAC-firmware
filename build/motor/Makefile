@@ -3,6 +3,13 @@ SRCDIR = ../../src
 MODULETYPE = motor
 MODULECFLAGS = -DMODULE_MOTOR --less-pedantic
 MODULESRC = main.c clock.c uart.c rtimer.c radio.c json.c jsmn.c motor.c
+#
+# only for ABU DHABI PROJECT BUILD
+#
+MODULESRC += sensor.c
+#
+# End of only for ABU DHABI PROJECT BUILD
+#
 MODULEREL = $(MODULESRC:.c=.rel)
 
 #

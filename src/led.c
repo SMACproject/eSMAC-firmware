@@ -79,6 +79,15 @@ void led_init(void)
   LED3_PIN = 0;
   LED4_PIN = 0;
   leds_status = 0;
+
+  /* TODO connect temperature sensor to the SoC, part of sensor.c init */
+  ATEST = 1;
+#if defined __IAR_SYSTEMS_ICC__
+  TR0 = 1;
+#else
+  TESTREG0 = 1;
+#endif
+  APCFG = 0; // disables input channels
 }
 
 void led_set(char leds)
@@ -227,12 +236,15 @@ int json_parser(char *json_string)
                    * T = 25 + ---------
                    *              4.5
                    */
+                  // float temperature = ((float)((ADCH << 8) | ADCL) >> 4) * 1150.0 / 2047.0 - 743.0) / 2.45;
                   sensor_reading = sensor_temperature();
-                  sane = 25 + ((sensor_reading - 1480) / 4.5);
+                  //sane = 25 + ((sensor_reading - 1480) / 4.5);
+                  sane = (sensor_reading * 1150.0 / 2047.0 - 743.0) / 4.5;
                   dec = sane;
                   frac = sane - dec;
                   memset(reply_buf, 0, sizeof(reply_buf));
-                  sprintf(reply_buf,"Temp=%d.%02u C (%d)\n", dec, (unsigned int)(frac*100), sensor_reading);
+                  //sprintf(reply_buf,"Temp=%d.%02u C (%d)\n", dec, (unsigned int)(frac*100), sensor_reading);
+                  sprintf(reply_buf,"{\"temp\": %d.%02u deg C}", dec, (unsigned int)(frac*100), sensor_reading);
                   rf_send(reply_buf, 25);
                 }
                 if (jsoneq(json_string, &t[i+1], "battery") == 0) {
@@ -252,7 +264,8 @@ int json_parser(char *json_string)
                   dec = sane;
                   frac = sane - dec;
                   memset(reply_buf, 0, sizeof(reply_buf));
-                  sprintf(reply_buf,"Supply=%d.%02u V (%d)\n", dec, (unsigned int)(frac*100), sensor_reading);
+                  //sprintf(reply_buf,"Supply=%d.%02u V (%d)\n", dec, (unsigned int)(frac*100), sensor_reading);
+                  sprintf(reply_buf,"{\"batt\": %d.%02u V}", dec, (unsigned int)(frac*100), sensor_reading);
                   rf_send(reply_buf, 25);
                 }
                 i++;
