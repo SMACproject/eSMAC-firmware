@@ -41,12 +41,54 @@
 extern "C" {
 #endif
 
-#define ONE_WIRE_TX 1
+#define ONE_WIRE_TX   0
 
 #ifdef UART_CONF_STDOUT_PORT
 #define UART_STDOUT_PORT UART_CONF_STDOUT_PORT
 #else
 #define UART_STDOUT_PORT 0
+#endif
+
+#ifdef UART_CONF_ONE_WIRE_PORT
+#define UART_ONE_WIRE_PORT UART_CONF_ONE_WIRE_PORT
+#else
+#define UART_ONE_WIRE_PORT 1
+#endif
+
+#if (UART_STDOUT_PORT == UART_ONE_WIRE_PORT)
+#error "uart.h: cannot set STDOUT and ONE_WIRE with the same port number!"
+#endif
+
+#if (UART_STDOUT_PORT == 0)
+#define serial_rxbuf        uart0_rxbuf
+#define serial_rxpos        uart0_rxpos
+#define serial_rxlen        uart0_rxlen
+#define serial_send         uart0_send
+#define serial_flush_rxbuf  uart0_flush_rxbuf
+#else
+#define serial_rxbuf        uart1_rxbuf
+#define serial_rxpos        uart1_rxpos
+#define serial_rxlen        uart1_rxlen
+#define serial_send         uart1_send
+#define serial_flush_rxbuf  uart1_flush_rxbuf
+#endif
+
+#if (UART_ONE_WIRE_PORT == 0)
+#define lin_rxbuf         uart0_rxbuf
+#define lin_rxpos         uart0_rxpos
+#define lin_rxlen         uart0_rxlen
+#define lin_send          uart0_send
+#define lin_flush_rxbuf   uart0_flush_rxbuf
+#define lin_rx_mode       uart0_rx_mode
+#define lin_tx_mode       uart0_tx_mode
+#else
+#define lin_rxbuf         uart1_rxbuf
+#define lin_rxpos         uart1_rxpos
+#define lin_rxlen         uart1_rxlen
+#define lin_send          uart1_send
+#define lin_flush_rxbuf   uart1_flush_rxbuf
+#define lin_rx_mode       uart1_rx_mode
+#define lin_tx_mode       uart1_tx_mode
 #endif
 
 #define UART_SET_SPEED(N, M, E) do{ U##N##BAUD = M; U##N##GCR = E; } while(0)
@@ -55,17 +97,23 @@ extern "C" {
 
 #define UART_LOCK   0x80
 
-extern char serial_rxbuf[128];
-extern int  serial_rxpos;
-extern int  serial_rxlen;
+extern char uart0_rxbuf[128];
+extern int  uart0_rxpos;
+extern int  uart0_rxlen;
+
+extern char uart1_rxbuf[128];
+extern int  uart1_rxpos;
+extern int  uart1_rxlen;
 
 void uart_init (void);
+void uart0_tx_mode (void);
+void uart0_rx_mode (void);
 void uart1_tx_mode (void);
 void uart1_rx_mode (void);
-
-//void uart0_init(void);
-void uart0_sendbuf(char *pbuf , int len);
+void uart0_send(char *pbuf , int len);
 void uart0_flush_rxbuf(void);
+void uart1_send(char *pbuf , int len);
+void uart1_flush_rxbuf(void);
 
 #ifdef __cplusplus
 }

@@ -130,7 +130,7 @@ void rf_receive_isr(void)
   if( crc_ok & 0x80 )
   {
     // print it to console
-    uart0_sendbuf( rf_rx_buf , rf_rx_len);
+    uart0_send( rf_rx_buf , rf_rx_len);
     
 // this is just a temporary workaround to use LED module as a dongle to read IMU data
 #if 0//MODULE_LED

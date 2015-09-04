@@ -51,17 +51,30 @@
 #include "radio.h"
 
 enum {
-  UART0_IDLE,
-  UART0_RECEIVING,
-  UART0_RECEIVED,
-  UART0_SENDING,
-  UART0_SENT
+  SERIAL_IDLE,
+  SERIAL_RECEIVING,
+  SERIAL_RECEIVED,
+  SERIAL_SENDING
 };
 
-static uint8_t uart0_state;
+enum {
+  LIN_IDLE,
+  LIN_RECEIVING,
+  LIN_RECEIVED,
+  LIN_SENDING
+};
+
+#define SPEED 25
+
+unsigned char mydata1, mydata2;
+unsigned char loopback1, loopback2;
+
+static uint8_t serial_state = SERIAL_IDLE;
+static uint8_t lin_state = LIN_IDLE;
 
 void main(void)
 {
+  uint8_t loop;
   EA = 0;
   
   clock_init();
@@ -80,24 +93,51 @@ void main(void)
   
   while(1)
   {
-    if( uart0_state == UART0_RECEIVED )
+    if( serial_state == SERIAL_RECEIVED )
     {
-      uart0_state = UART0_SENDING;
+      serial_state = SERIAL_SENDING;
       rf_send(serial_rxbuf , serial_rxlen);
-      uart0_flush_rxbuf();
-      uart0_state = UART0_IDLE;
+      serial_flush_rxbuf();
+      serial_state = SERIAL_IDLE;
     }
+#if ONE_WIRE_TX
+      lin_tx_mode();
+      lin_state = LIN_SENDING;
+      led_set(LED3);
+      lin_send("hello", 5);
+      led_set(0);
+      lin_rx_mode();
+      lin_state = LIN_IDLE;
+      for (loop=0; loop < SPEED; loop++) clock_delay_usec(60000);
+#else // ONE_WIRE_TX //
+    if( lin_state == LIN_RECEIVED )
+    {
+      led_set(LED3);
+      serial_send(lin_rxbuf, lin_rxlen);
+      printf("(%i)", lin_rxlen);
+      lin_flush_rxbuf();
+      led_set(0);
+      lin_state = LIN_IDLE;
+    }
+#endif
   }
 }
 
-void uart0_receiving_timeout (void)
+void serial_receiving_timeout (void)
 {
-  if (uart0_state == UART0_RECEIVING) {
-    // print it to console
-    uart0_sendbuf( serial_rxbuf , serial_rxlen);
-    uart0_state = UART0_RECEIVED;
+  if (serial_state == SERIAL_RECEIVING) {
+    serial_send( serial_rxbuf , serial_rxlen);
+    serial_state = SERIAL_RECEIVED;
   }
-  //led_set(0);
+}
+
+void lin_receiving_timeout (void)
+{
+  if (lin_state == LIN_RECEIVING) {
+    /* forward lin bus to serial port */
+    //serial_send( lin_rxbuf , lin_rxlen);
+    lin_state = LIN_RECEIVED;
+  }
 }
 
 #if defined __IAR_SYSTEMS_ICC__
@@ -109,15 +149,17 @@ void uart0_isr (void) __interrupt (URX0_VECTOR)
 {
   URX0IF = 0;
 
-  if (serial_rxpos >= 128 || uart0_state == UART0_SENDING) return;
+#if (UART_STDOUT_PORT == 0)
+  if (serial_rxpos >= 128 || serial_state == SERIAL_SENDING) return;
 
   serial_rxbuf[serial_rxpos] = U0DBUF;
   serial_rxpos++;
   serial_rxlen++;
 
-  uart0_state = UART0_RECEIVING;
-  rtimer_schedule(100, uart0_receiving_timeout);
+  serial_state = SERIAL_RECEIVING;
+  rtimer_schedule(100, serial_receiving_timeout);
 }
+#endif
 
 #if defined __IAR_SYSTEMS_ICC__
 #pragma vector=URX1_VECTOR
@@ -127,6 +169,17 @@ void uart1_isr (void) __interrupt (URX1_VECTOR)
 #endif
 {
   URX1IF = 0;
+
+#if (UART_ONE_WIRE_PORT == 1)
+  if (lin_rxpos >= 128 || lin_state == LIN_SENDING) return;
+
+  lin_rxbuf[lin_rxpos] = U1DBUF;
+  lin_rxpos++;
+  lin_rxlen++;
+
+  lin_state = LIN_RECEIVING;
+  rtimer_schedule(100, lin_receiving_timeout);
+#endif
 }
 
 #if defined __IAR_SYSTEMS_ICC__
@@ -168,8 +221,6 @@ void rtimer_isr (void) __interrupt (T1_VECTOR)
     /* Release rtimer lock and callback */
     rtimer_busy = 0;
     rtimer_callback = NULL;
-
-    //rtimer_schedule(27, toggle_led);
   }
 
   T1IE = 1; /* Acknowledge Timer 1 Interrupts */

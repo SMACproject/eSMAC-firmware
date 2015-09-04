@@ -40,81 +40,103 @@
 #include "uart.h"
 #include "errnum.h"
 
-char serial_rxbuf[128];
-int  serial_rxpos = 0;
-int  serial_rxlen = 0;
-//char is_serial_receive = 0;
+char uart0_rxbuf[128];
+int  uart0_rxpos = 0;
+int  uart0_rxlen = 0;
+
+char uart1_rxbuf[128];
+int  uart1_rxpos = 0;
+int  uart1_rxlen = 0;
 
 void uart_init (void)
 {
-#if (UART_STDOUT_PORT == 0)
+#if (UART_STDOUT_PORT == 0 || UART_ONE_WIRE_PORT == 0)
     UART_SET_SPEED(0, UART_115_M, UART_115_E);
     PERCFG &= ~PERCFG_U0CFG;  /* alternative 1 = P0.2-5 */
+#if (UART_ONE_WIRE_PORT == 0)
+    P0SEL |= 0x00;            /* TX and RX as inputs for one serial bus communication */
+    P0DIR &= ~0x08;           /* TX in, always disabled, as hi-z */
+    P0DIR &= ~0x04;           /* RX in, always listening, as input */
+#else
     P0SEL |= 0x0C;            /* peripheral select for TX and RX */
     P0DIR |= 0x08;            /* TX out */
     P0DIR &= ~0x04;           /* RX in */
+#endif
     U0UCR = 0x02;             /* defaults: 8N1, no flow, high stop bit */
     U0CSR = UCSR_MODE | UCSR_RE;  /* UART mode, RX enabled */
     U0UCR |= 0x80;            /* flush it */
     URX0IE = 1;               /* enable RX interrupt */
     //UTX0IF = 1;
-#elif (UART_STDOUT_PORT == 1)
+#endif
+#if (UART_STDOUT_PORT == 1 || UART_ONE_WIRE_PORT == 1)
     UART_SET_SPEED(1, UART_115_M, UART_115_E);
     PERCFG |= PERCFG_U1CFG;  /* alternative 2 = P1.7-4 */
-#if ONE_WIRE_TX
+#if (UART_ONE_WIRE_PORT == 1)
+    P1SEL |= 0x00;            /* TX and RX as inputs for one serial bus communication */
+    P1DIR &= ~0x40;           /* TX in, always disabled, as hi-z */
+    P1DIR &= ~0x80;           /* RX in, always listening, as input */
+#else
     P1SEL |= 0xC0;            /* peripheral select for TX and RX */
     P1DIR |= 0x40;            /* TX out */
     P1DIR &= ~0x80;           /* RX in */
-#else
-    P1SEL |= 0x00;            /* peripheral select for TX and RX */
-    P1DIR &= ~0x40;           /* TX in */
-    P1DIR &= ~0x80;           /* RX in */ 
 #endif
     U1UCR = 0x02;             /* defaults: 8N1, no flow, high stop bit */
     U1CSR = UCSR_MODE | UCSR_RE;  /* UART mode, RX enabled */
     U1UCR |= 0x80;            /* flush it */
-    //URX1IE = 1;               /* enable RX interrupt */
+    URX1IE = 1;               /* enable RX interrupt */
     //UTX1IF = 1;
 #endif
 }
 
+void uart0_tx_mode (void)
+{
+  P0SEL |= 0x0C;            /* peripheral select for TX and RX */
+  P0DIR |= 0x08;            /* TX out */
+  P0DIR &= ~0x04;           /* RX in */
+
+  U0UCR |= 0x80;            /* flush it */
+}
+
+void uart0_rx_mode (void)
+{
+  P0SEL |= 0x00;            /* TX and RX as inputs for one serial bus communication */
+  P0DIR &= ~0x08;           /* TX in, always disabled, as hi-z */
+  P0DIR &= ~0x04;           /* RX in, always listening, as input */
+
+  U0UCR |= 0x80;            /* flush it */
+}
+
 void uart1_tx_mode (void)
 {
-    //UART_SET_SPEED(1, UART_115_M, UART_115_E);
-    //PERCFG |= PERCFG_U1CFG;  /* alternative 2 = P1.7-4 */
+  P1SEL |= 0xC0;            /* peripheral select for TX and RX */
+  P1DIR |= 0x40;            /* TX out */
+  P1DIR &= ~0x80;           /* RX in */
 
-    P1SEL |= 0xC0;            /* peripheral select for TX and RX */
-    P1DIR |= 0x40;            /* TX out */
-    P1DIR &= ~0x80;           /* RX in */
-
-    //U1UCR = 0x02;             /* defaults: 8N1, no flow, high stop bit */
-    //U1CSR = UCSR_MODE | UCSR_RE;  /* UART mode, RX enabled */
-    U1UCR |= 0x80;            /* flush it */
-    //URX1IE = 1;               /* enable RX interrupt */
+  U1UCR |= 0x80;            /* flush it */
 }
 
 void uart1_rx_mode (void)
 {
-    //UART_SET_SPEED(1, UART_115_M, UART_115_E);
-    //PERCFG |= PERCFG_U1CFG;  /* alternative 2 = P1.7-4 */
+  P1SEL |= 0x00;            /* TX and RX as inputs for one serial bus communication */
+  P1DIR &= ~0x40;           /* TX in, always disabled, as hi-z */
+  P1DIR &= ~0x80;           /* RX in, always listening, as input */
 
-    P1SEL |= 0x00;            /* peripheral select for TX and RX */
-    P1DIR &= ~0x40;           /* TX in */
-    P1DIR &= ~0x80;           /* RX in */ 
-
-    //U1UCR = 0x02;             /* defaults: 8N1, no flow, high stop bit */
-    //U1CSR = UCSR_MODE | UCSR_RE;  /* UART mode, RX enabled */
-    U1UCR |= 0x80;            /* flush it */
-    //URX1IE = 1;               /* enable RX interrupt */
+  U1UCR |= 0x80;            /* flush it */
 }
 
 void uart0_flush_rxbuf()
 {
-  serial_rxpos = 0;
-  serial_rxlen = 0;
+  uart0_rxpos = 0;
+  uart0_rxlen = 0;
 }
 
-void uart0_sendbuf(char *pbuf , int len)
+void uart1_flush_rxbuf()
+{
+  uart1_rxpos = 0;
+  uart1_rxlen = 0;
+}
+
+void uart0_send(char *pbuf , int len)
 {
   int i;
 
@@ -125,6 +147,20 @@ void uart0_sendbuf(char *pbuf , int len)
     pbuf++;
     while(!(U0CSR & UCSR_TX_BYTE)); // Wait until byte has been transmitted.
     U0CSR &= ~UCSR_TX_BYTE; // Clear TX_BYTE status
+  }
+}
+
+void uart1_send(char *pbuf , int len)
+{
+  int i;
+
+  for(i = 0 ; i < len ; i++)
+  {
+    U1CSR &= ~UCSR_TX_BYTE; // Clear TX_BYTE status
+    U1DBUF = *pbuf;
+    pbuf++;
+    while(!(U1CSR & UCSR_TX_BYTE)); // Wait until byte has been transmitted.
+    U1CSR &= ~UCSR_TX_BYTE; // Clear TX_BYTE status
   }
 }
 
