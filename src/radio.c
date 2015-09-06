@@ -123,6 +123,16 @@ uint8_t rf_set_channel(uint8_t channel)
     return 0;
 }
 
+uint8_t rf_get_short_addr1(void)
+{
+  return SHORT_ADDR1;
+}
+
+uint8_t rf_get_short_addr0(void)
+{
+  return SHORT_ADDR0;
+}
+
 void rf_receive_isr(void)
 {
   int rf_rx_len = 0;
@@ -206,4 +216,23 @@ void rf_send( char *pbuf , int len)
 
   RFIRQM0 |= (1<<6);
   IEN2 |= (1<<0);
+}
+
+#if defined __IAR_SYSTEMS_ICC__
+#pragma vector=RF_VECTOR
+__interrupt void rf_isr(void)
+#else
+void rf_isr (void) __interrupt (RF_VECTOR)
+#endif
+{
+  EA = 0;
+
+  if (RFIRQF0 & ( 1<<6 ))
+  {
+    rf_receive_isr();
+
+    S1CON = 0;
+    RFIRQF0 &= ~(1<<6);
+  }
+  EA = 1;
 }

@@ -2,8 +2,8 @@ SRCDIR = ../../src
 
 MODULETYPE = imu
 MODULECFLAGS = -DMODULE_IMU -DSPI1_ENABLE --less-pedantic
-MODULESRC = main.c clock.c uart.c spi.c spi1.c spi-arch.c flash.c rtimer.c radio.c json.c jsmn.c
-MODULESRC += lsm9ds0.c
+MODULESRC = main.c intr.c clock.c uart.c spi.c spi1.c spi-arch.c rtimer.c radio.c flash.c json.c jsmn.c
+MODULESRC += serial.c ulin.c lsm9ds0.c
 MODULEREL = $(MODULESRC:.c=.rel)
 
 #

@@ -41,6 +41,15 @@
 extern "C" {
 #endif
 
+#define FLASH_BANK_0    0
+#define FLASH_BANK_1    1
+#define FLASH_BANK_2    2
+#define FLASH_BANK_3    3
+#define FLASH_BANK_4    4
+#define FLASH_BANK_5    5
+#define FLASH_BANK_6    6
+#define FLASH_BANK_7    7
+
 #define FLASH_PAGE_SIZE 2048
 
 #define READ_WHEN_NEED  0x00
@@ -73,8 +82,6 @@ extern "C" {
     FCTL = options;         \
   } while (0)
 
-void flash_erase_page(unsigned char page);
-
 /** DMA configuration structure */
 typedef struct dma_config {
   uint8_t src_h; /* source address high byte*/
@@ -88,8 +95,10 @@ typedef struct dma_config {
   uint8_t inc_prio;
 } dma_config_t;
 
+void flash_erase_page(unsigned char page);
 void flash_dma_write(uint8_t *buffer, uint16_t length, uint32_t flashadr);
 void flash_dma_read(uint8_t *buffer, uint16_t length, uint32_t flashadr);
+void flash_bank_select(uint8_t bank);
 
 #ifdef __cplusplus
 }

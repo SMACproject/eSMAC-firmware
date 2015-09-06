@@ -1,10 +1,10 @@
 /*
- * config.h
+ * intr.h
  *
- * Created on: May 29, 2014
+ * Created on: Sep 6, 2015
  *     Author: Ekawahyu Susilo
  *
- * Copyright (c) 2014, Chongqing Aisenke Electronic Technology Co., Ltd.
+ * Copyright (c) 2015, Chongqing Aisenke Electronic Technology Co., Ltd.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,26 +34,27 @@
  *
  */
 
-#ifndef CONFIG_H_
-#define CONFIG_H_
+
+#ifndef SRC_INTR_H_
+#define SRC_INTR_H_
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#if defined SDCC || defined __SDCC
-#define CONFIG_DONT_HAVE_STRTOL
-#define CONFIG_DONT_HAVE_SPRINTF_WITH_STRING_LENGTH_FORMATTING
-#endif
+#include "cc253x.h"
+#include "sfr-bits.h"
 
-#define CONFIG_RADIO_CHANNEL      20
+extern void uart0_isr (void) __interrupt (URX0_VECTOR);
+extern void uart1_isr (void) __interrupt (URX1_VECTOR);
+extern void rf_isr (void) __interrupt (RF_VECTOR);
+extern void rtimer_isr (void) __interrupt (T1_VECTOR);
 
-#define CONFIG_MOTOR_PWM_ENABLE   1
-
-#define CONFIG_ABU_DHABI          1
+void disable_interrupt(void);
+void enable_interrupt(void);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* CONFIG_H_ */
+#endif /* SRC_INTR_H_ */

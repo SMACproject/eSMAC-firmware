@@ -2,8 +2,8 @@ SRCDIR = ../../src
 
 MODULETYPE = led
 MODULECFLAGS = -DMODULE_LED --less-pedantic
-MODULESRC = main.c clock.c uart.c rtimer.c radio.c json.c jsmn.c sensor.c led.c
-MODULESRC += sensor.c
+MODULESRC = main.c intr.c clock.c uart.c rtimer.c radio.c flash.c json.c jsmn.c
+MODULESRC += serial.c ulin.c led.c sensor.c
 MODULEREL = $(MODULESRC:.c=.rel)
 
 #

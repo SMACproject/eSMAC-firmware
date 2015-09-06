@@ -34,6 +34,8 @@
  *
  */
 
+#include <stdint.h>
+#include <stdlib.h>
 #include "config.h"
 #include "cc253x.h"
 #include "sfr-bits.h"
@@ -48,7 +50,7 @@ unsigned char uart1_rxbuf[128];
 uint8_t  uart1_rxpos = 0;
 uint8_t  uart1_rxlen = 0;
 
-void uart_init (void)
+void uart0_init (void)
 {
 #if (UART_STDOUT_PORT == 0 || UART_ONE_WIRE_PORT == 0)
     UART_SET_SPEED(0, UART_115200_M, UART_115200_E);
@@ -68,6 +70,10 @@ void uart_init (void)
     URX0IE = 1;               /* enable RX interrupt */
     //UTX0IF = 1;
 #endif
+}
+
+void uart1_init (void)
+{
 #if (UART_STDOUT_PORT == 1 || UART_ONE_WIRE_PORT == 1)
     UART_SET_SPEED(1, UART_115200_M, UART_115200_E);
     PERCFG |= PERCFG_U1CFG;  /* alternative 2 = P1.7-4 */
@@ -86,6 +92,16 @@ void uart_init (void)
     URX1IE = 1;               /* enable RX interrupt */
     //UTX1IF = 1;
 #endif
+}
+
+uint8_t uart0_get_data(void)
+{
+  return U0DBUF;
+}
+
+uint8_t uart1_get_data(void)
+{
+  return U1DBUF;
 }
 
 void uart0_tx_mode (void)
@@ -185,5 +201,33 @@ putchar(char c)
 #endif
 #if defined __IAR_SYSTEMS_ICC__
   return c;
+#endif
+}
+
+#if defined __IAR_SYSTEMS_ICC__
+#pragma vector=URX0_VECTOR
+__interrupt void uart0_isr(void)
+#else
+void uart0_isr (void) __interrupt (URX0_VECTOR)
+#endif
+{
+  URX0IF = 0;
+
+#if (UART_STDOUT_PORT == 0)
+  serial_input_handler();
+#endif
+}
+
+#if defined __IAR_SYSTEMS_ICC__
+#pragma vector=URX1_VECTOR
+__interrupt void uart1_isr(void)
+#else
+void uart1_isr (void) __interrupt (URX1_VECTOR)
+#endif
+{
+  URX1IF = 0;
+
+#if (UART_ONE_WIRE_PORT == 1)
+  ulin_input_handler();
 #endif
 }

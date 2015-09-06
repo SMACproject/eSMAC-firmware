@@ -1,10 +1,10 @@
 /*
- * config.h
+ * serial.c
  *
- * Created on: May 29, 2014
+ * Created on: Sep 6, 2015
  *     Author: Ekawahyu Susilo
  *
- * Copyright (c) 2014, Chongqing Aisenke Electronic Technology Co., Ltd.
+ * Copyright (c) 2015, Chongqing Aisenke Electronic Technology Co., Ltd.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,26 +34,59 @@
  *
  */
 
-#ifndef CONFIG_H_
-#define CONFIG_H_
+#include <stdint.h>
+#include "rtimer.h"
+#include "uart.h"
+#include "serial.h"
+#include "radio.h"
 
-#ifdef __cplusplus
-extern "C" {
+enum {
+  SERIAL_IDLE,
+  SERIAL_RECEIVING,
+  SERIAL_RECEIVED,
+  SERIAL_SENDING
+};
+
+static uint8_t serial_state = SERIAL_IDLE;
+
+void serial_init(void)
+{
+#if (UART_STDOUT_PORT == 0)
+  uart0_init();
 #endif
-
-#if defined SDCC || defined __SDCC
-#define CONFIG_DONT_HAVE_STRTOL
-#define CONFIG_DONT_HAVE_SPRINTF_WITH_STRING_LENGTH_FORMATTING
+#if (UART_STDOUT_PORT == 1)
+  uart1_init();
 #endif
-
-#define CONFIG_RADIO_CHANNEL      20
-
-#define CONFIG_MOTOR_PWM_ENABLE   1
-
-#define CONFIG_ABU_DHABI          1
-
-#ifdef __cplusplus
 }
-#endif
 
-#endif /* CONFIG_H_ */
+void serial_receiving_timeout (void)
+{
+  if (serial_state == SERIAL_RECEIVING) {
+    serial_send(serial_rxbuf , serial_rxlen);
+    serial_state = SERIAL_RECEIVED;
+  }
+}
+
+void serial_input_handler(void)
+{
+  if (serial_rxpos >= 128 || serial_state == SERIAL_SENDING) return;
+
+  serial_rxbuf[serial_rxpos] = serial_get_data();
+  serial_rxpos++;
+  serial_rxlen++;
+
+  serial_state = SERIAL_RECEIVING;
+  rtimer_schedule(100, serial_receiving_timeout);
+}
+
+void serial_service(void)
+{
+  if( serial_state == SERIAL_RECEIVED ) {
+    serial_state = SERIAL_SENDING;
+    rf_send(serial_rxbuf , serial_rxlen);
+    serial_flush_rxbuf();
+
+    serial_state = SERIAL_IDLE;
+  }
+}
+

@@ -34,13 +34,12 @@
  *
  */
 
-#include <stdlib.h>
 #include <stdint.h>
-
+#include <stdlib.h>
+#include "config.h"
 #include "cc253x.h"
 #include "sfr-bits.h"
 #include "rtimer.h"
-//#include "led.h"
 
 #define RT_MODE_COMPARE() do { T1CCTL0 |= T1CCTL_MODE; } while(0)
 #define RT_MODE_CAPTURE() do { T1CCTL0 &= ~T1CCTL_MODE; } while(0)
@@ -102,7 +101,27 @@ uint8_t rtimer_schedule(timer_t t, void(*callback)(void))
   return rtimer_busy;
 }
 
-/*void toggle_led()
+#if defined __IAR_SYSTEMS_ICC__
+#pragma vector=T1_VECTOR
+__interrupt void rtimer_isr(void)
+#else
+void rtimer_isr (void) __interrupt (T1_VECTOR)
+#endif
 {
-  if (led_get()) led_set(0); else led_set(LED1);
-}*/
+  T1IE = 0; /* Ignore Timer 1 Interrupts */
+
+  if (T1STAT & T1STAT_CH0IF) {
+    /* No more interrupts from Channel 1 till next rtimer_arch_schedule() call */
+    T1STAT &= ~T1STAT_CH0IF;
+    T1CCTL0 &= ~T1CCTL_IM;
+
+    /* Callback function call */
+    if (rtimer_callback) rtimer_callback();
+
+    /* Release rtimer lock and callback */
+    rtimer_busy = 0;
+    rtimer_callback = NULL;
+  }
+
+  T1IE = 1; /* Acknowledge Timer 1 Interrupts */
+}

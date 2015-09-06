@@ -34,6 +34,7 @@
  *
  */
 
+#include <stdint.h>
 #include "config.h"
 #include "cc253x.h"
 #include "sfr-bits.h"

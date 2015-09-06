@@ -2,7 +2,8 @@ SRCDIR = ../../src
 
 MODULETYPE = motor
 MODULECFLAGS = -DMODULE_MOTOR --less-pedantic
-MODULESRC = main.c clock.c uart.c rtimer.c radio.c json.c jsmn.c motor.c
+MODULESRC = main.c intr.c clock.c uart.c rtimer.c radio.c flash.c json.c jsmn.c
+MODULESRC += serial.c ulin.c motor.c
 #
 # only for ABU DHABI PROJECT BUILD
 #

@@ -34,6 +34,7 @@
  *
  */
 
+#include <stdint.h>
 #include "config.h"
 #include "compiler.h"
 #include "cc253x.h"
@@ -207,4 +208,10 @@ void flash_dma_read(uint8_t *buffer, uint16_t length, uint32_t flashadr) // leng
   DMAREQ |= 0x01; /* trigger the DMA */
   while (!(DMAIRQ & 0x01)); /* wait until read complete */
   DMAIRQ &= 0xFE; /* clear any DMA interrupt flag */
+}
+
+void flash_bank_select(uint8_t bank)
+{
+  MEMCTR &= ~0x07;
+  MEMCTR |= bank;
 }
