@@ -40,18 +40,18 @@
 #include "uart.h"
 #include "errnum.h"
 
-char uart0_rxbuf[128];
-int  uart0_rxpos = 0;
-int  uart0_rxlen = 0;
+unsigned char uart0_rxbuf[128];
+uint8_t  uart0_rxpos = 0;
+uint8_t  uart0_rxlen = 0;
 
-char uart1_rxbuf[128];
-int  uart1_rxpos = 0;
-int  uart1_rxlen = 0;
+unsigned char uart1_rxbuf[128];
+uint8_t  uart1_rxpos = 0;
+uint8_t  uart1_rxlen = 0;
 
 void uart_init (void)
 {
 #if (UART_STDOUT_PORT == 0 || UART_ONE_WIRE_PORT == 0)
-    UART_SET_SPEED(0, UART_115_M, UART_115_E);
+    UART_SET_SPEED(0, UART_115200_M, UART_115200_E);
     PERCFG &= ~PERCFG_U0CFG;  /* alternative 1 = P0.2-5 */
 #if (UART_ONE_WIRE_PORT == 0)
     P0SEL |= 0x00;            /* TX and RX as inputs for one serial bus communication */
@@ -69,7 +69,7 @@ void uart_init (void)
     //UTX0IF = 1;
 #endif
 #if (UART_STDOUT_PORT == 1 || UART_ONE_WIRE_PORT == 1)
-    UART_SET_SPEED(1, UART_115_M, UART_115_E);
+    UART_SET_SPEED(1, UART_115200_M, UART_115200_E);
     PERCFG |= PERCFG_U1CFG;  /* alternative 2 = P1.7-4 */
 #if (UART_ONE_WIRE_PORT == 1)
     P1SEL |= 0x00;            /* TX and RX as inputs for one serial bus communication */

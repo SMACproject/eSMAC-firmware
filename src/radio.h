@@ -47,7 +47,8 @@ extern "C" {
 #define RADIO_CHANNEL   13 /* any number between 11-26, note that channel 11 is buggy */
 #endif
 
-void rf_init(void);
+void rf_init(uint8_t channel);
+uint8_t rf_set_channel(uint8_t channel);
 void rf_send(char *pbuf , int len);
 void rf_receive_isr(void);
 

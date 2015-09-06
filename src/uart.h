@@ -92,18 +92,20 @@ extern "C" {
 #endif
 
 #define UART_SET_SPEED(N, M, E) do{ U##N##BAUD = M; U##N##GCR = E; } while(0)
-#define UART_115_M   216
-#define UART_115_E    11
+#define UART_115200_M   216
+#define UART_115200_E    11
+#define UART_19200_M     59
+#define UART_19200_E      9
 
 #define UART_LOCK   0x80
 
-extern char uart0_rxbuf[128];
-extern int  uart0_rxpos;
-extern int  uart0_rxlen;
+extern unsigned char uart0_rxbuf[128];
+extern uint8_t  uart0_rxpos;
+extern uint8_t  uart0_rxlen;
 
-extern char uart1_rxbuf[128];
-extern int  uart1_rxpos;
-extern int  uart1_rxlen;
+extern unsigned char uart1_rxbuf[128];
+extern uint8_t  uart1_rxpos;
+extern uint8_t  uart1_rxlen;
 
 void uart_init (void);
 void uart0_tx_mode (void);

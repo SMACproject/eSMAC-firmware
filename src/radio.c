@@ -56,7 +56,7 @@ static uint8_t uart0_state;
 uint8_t destination0;
 uint8_t destination1;
 
-void rf_init(void)
+void rf_init(uint8_t channel)
 {
   uint8_t ext_addr[8];
   int8_t i;
@@ -96,13 +96,31 @@ void rf_init(void)
   destination0 = 255;
   destination1 = 255;
 
-  FREQCTRL = 11 + ((RADIO_CHANNEL-11)*5);
+  rf_set_channel(channel);
 
   RFIRQM0 |= (1<<6);
   IEN2 |= (1<<0);
 
   RFST = 0xED; // ISFLUSHRX
   RFST = 0xE3; // ISRXON
+}
+
+uint8_t rf_set_channel(uint8_t channel)
+{
+  RFST = 0xEF; // ISRFOFF
+  RFST = 0xED; // ISFLUSHRX
+
+  if (channel >= 11 && channel <= 26) {
+    FREQCTRL = 11 + ((channel-11) * 5);
+  }
+
+  RFST = 0xED; // ISFLUSHRX
+  RFST = 0xE3; // ISRXON
+
+  if (channel >= 11 && channel <= 26)
+    return channel;
+  else
+    return 0;
 }
 
 void rf_receive_isr(void)

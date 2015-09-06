@@ -64,17 +64,23 @@ enum {
   LIN_SENDING
 };
 
-#define SPEED 25
+#define SPEED 1
 
 unsigned char mydata1, mydata2;
 unsigned char loopback1, loopback2;
 
-static uint8_t serial_state = SERIAL_IDLE;
-static uint8_t lin_state = LIN_IDLE;
+unsigned char lin_txbuf[20];
+static uint16_t err_count = 0;
+
+static volatile uint8_t serial_state = SERIAL_IDLE;
+static volatile uint8_t lin_state = LIN_IDLE;
 
 void main(void)
 {
+#if ONE_WIRE_TX
   uint8_t loop;
+  uint8_t identifier = 1;
+#endif
   EA = 0;
   
   clock_init();
@@ -82,7 +88,7 @@ void main(void)
 
   uart_init();
   rtimer_init();
-  rf_init();
+  rf_init(RADIO_CHANNEL);
   module_init();
 
   // comment this line out to prevent bluetooth board from crashing
@@ -103,20 +109,39 @@ void main(void)
 #if ONE_WIRE_TX
       lin_tx_mode();
       lin_state = LIN_SENDING;
-      led_set(LED3);
-      lin_send("hello", 5);
-      led_set(0);
+      //led_set(LED3);
+
+      lin_txbuf[0] = 0x00;
+      lin_txbuf[1] = 0x00;
+      lin_txbuf[2] = 0x55;
+      lin_txbuf[3] = identifier++;
+      if (identifier == 64) identifier = 0;
+      lin_txbuf[4] = 0x12;
+      lin_txbuf[5] = 0x34;
+      lin_txbuf[6] = 0x56;
+      lin_txbuf[7] = 0x78;
+      lin_txbuf[8] = 0x90;
+      lin_txbuf[9] = 0xAB;
+      lin_txbuf[10] = 0xCD;
+      lin_txbuf[11] = 0xEF;
+      lin_txbuf[12] = 0xAA;
+
+      lin_send(lin_txbuf, 13);
+
+      //led_set(0);
       lin_rx_mode();
       lin_state = LIN_IDLE;
-      for (loop=0; loop < SPEED; loop++) clock_delay_usec(60000);
+      for (loop=0; loop < SPEED; loop++) clock_delay_usec(1000);
 #else // ONE_WIRE_TX //
     if( lin_state == LIN_RECEIVED )
     {
-      led_set(LED3);
-      serial_send(lin_rxbuf, lin_rxlen);
-      printf("(%i)", lin_rxlen);
+      if (lin_rxbuf[0] == 0 && lin_rxbuf[1] == 0 && lin_rxbuf[2] == 0x55) {
+        if (lin_rxbuf[3] == 1)
+          led_set(LED3);
+        else
+          led_set(0);
+      }
       lin_flush_rxbuf();
-      led_set(0);
       lin_state = LIN_IDLE;
     }
 #endif
@@ -126,17 +151,9 @@ void main(void)
 void serial_receiving_timeout (void)
 {
   if (serial_state == SERIAL_RECEIVING) {
-    serial_send( serial_rxbuf , serial_rxlen);
+    serial_send(serial_rxbuf , serial_rxlen);
+    printf("%i-%i-%i-%i\n", lin_state, lin_rxpos, lin_rxlen, err_count);
     serial_state = SERIAL_RECEIVED;
-  }
-}
-
-void lin_receiving_timeout (void)
-{
-  if (lin_state == LIN_RECEIVING) {
-    /* forward lin bus to serial port */
-    //serial_send( lin_rxbuf , lin_rxlen);
-    lin_state = LIN_RECEIVED;
   }
 }
 
@@ -171,14 +188,32 @@ void uart1_isr (void) __interrupt (URX1_VECTOR)
   URX1IF = 0;
 
 #if (UART_ONE_WIRE_PORT == 1)
-  if (lin_rxpos >= 128 || lin_state == LIN_SENDING) return;
+  /* LIN buffer is full and need to be processed */
+  if (lin_state == LIN_RECEIVED) {
+    return;
+  }
+
+  /* The 1st BREAK detection */
+  if ((lin_state == LIN_IDLE) && (U1DBUF == 0)) {
+    lin_flush_rxbuf();
+  }
+
+  /* No sync detected */
+  if (lin_rxpos == 3) {
+    if (lin_rxbuf[0] != 0 || lin_rxbuf[1] != 0 || lin_rxbuf[2] != 0x55) {
+      lin_flush_rxbuf();
+      err_count++;
+    }
+  }
 
   lin_rxbuf[lin_rxpos] = U1DBUF;
   lin_rxpos++;
   lin_rxlen++;
 
-  lin_state = LIN_RECEIVING;
-  rtimer_schedule(100, lin_receiving_timeout);
+  if (lin_rxpos >= 13)
+    lin_state = LIN_RECEIVED;
+  else
+    lin_state = LIN_RECEIVING;
 #endif
 }
 
