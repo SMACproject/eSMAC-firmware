@@ -48,7 +48,7 @@ enum {
   ULIN_SENDING
 };
 
-unsigned char ulin_txbuf[20];
+unsigned char ulin_txbuf[13];
 uint8_t identifier = 0;
 
 static uint16_t ulin_err_count = 0;

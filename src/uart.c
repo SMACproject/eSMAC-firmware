@@ -42,11 +42,11 @@
 #include "uart.h"
 #include "errnum.h"
 
-unsigned char uart0_rxbuf[128];
+unsigned char uart0_rxbuf[UART0_BUFFER_SIZE];
 uint8_t  uart0_rxpos = 0;
 uint8_t  uart0_rxlen = 0;
 
-unsigned char uart1_rxbuf[128];
+unsigned char uart1_rxbuf[UART1_BUFFER_SIZE];
 uint8_t  uart1_rxpos = 0;
 uint8_t  uart1_rxlen = 0;
 

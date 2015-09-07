@@ -57,17 +57,33 @@ extern "C" {
 #error "uart.h: cannot set STDOUT and ONE_WIRE with the same port number!"
 #endif
 
+#define UART_BUFFER_SIZE        128
+#define ONE_WIRE_BUFFER_SIZE    13
+
+#if (UART_STDOUT_PORT == 0)
+#define UART0_BUFFER_SIZE   UART_BUFFER_SIZE
+#endif
+#if (UART_STDOUT_PORT == 1)
+#define UART1_BUFFER_SIZE   UART_BUFFER_SIZE
+#endif
+#if (UART_ONE_WIRE_PORT == 0)
+#define UART0_BUFFER_SIZE   ONE_WIRE_BUFFER_SIZE
+#endif
+#if (UART_ONE_WIRE_PORT == 1)
+#define UART1_BUFFER_SIZE   ONE_WIRE_BUFFER_SIZE
+#endif
+
 #define UART_SET_SPEED(N, M, E) do{ U##N##BAUD = M; U##N##GCR = E; } while(0)
 #define UART_115200_M   216
 #define UART_115200_E    11
 #define UART_19200_M     59
 #define UART_19200_E      9
 
-extern unsigned char uart0_rxbuf[128];
+extern unsigned char uart0_rxbuf[UART0_BUFFER_SIZE];
 extern uint8_t  uart0_rxpos;
 extern uint8_t  uart0_rxlen;
 
-extern unsigned char uart1_rxbuf[128];
+extern unsigned char uart1_rxbuf[UART1_BUFFER_SIZE];
 extern uint8_t  uart1_rxpos;
 extern uint8_t  uart1_rxlen;
 
