@@ -48,7 +48,7 @@ extern "C" {
 
 #define CONFIG_RADIO_CHANNEL      20
 
-#define CONFIG_MOTOR_PWM_ENABLE   1
+#define CONFIG_MOTOR_PWM_ENABLE   0
 
 #define CONFIG_ABU_DHABI          1
 

@@ -48,6 +48,7 @@ enum {
 };
 
 static uint8_t serial_state = SERIAL_IDLE;
+struct rtimer serial_rtimer;
 
 void serial_init(void)
 {
@@ -76,7 +77,8 @@ void serial_input_handler(void)
   serial_rxlen++;
 
   serial_state = SERIAL_RECEIVING;
-  rtimer_schedule(100, serial_receiving_timeout);
+  //rtimer_schedule(100, serial_receiving_timeout);
+  //rtimer_set(&serial_rtimer, rtimer_now()+100, serial_receiving_timeout);
 }
 
 void serial_service(void)

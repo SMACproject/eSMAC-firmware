@@ -49,6 +49,7 @@ extern "C" {
 
 void rf_init(uint8_t channel);
 uint8_t rf_set_channel(uint8_t channel);
+uint8_t rf_get_channel(void);
 uint8_t rf_get_short_addr0(void);
 uint8_t rf_get_short_addr1(void);
 void rf_send(char *pbuf , int len);

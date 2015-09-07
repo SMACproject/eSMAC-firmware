@@ -49,6 +49,63 @@
 #include "jsmn.h"
 #include "json.h"
 
+#include "led.h"
+
+struct rtimer blink1, blink2, blink3, blink4;
+uint8_t blink1_status = 0, blink2_status = 0, blink3_status = 0, blink4_status = 0;
+
+void blink1_handler(void)
+{
+  if (blink1_status) {
+    blink1_status = 0;
+    led_set(led_get() & ~LED1);
+  }
+  else {
+    blink1_status = 1;
+    led_set(led_get() | LED1);
+  }
+  rtimer_set(&blink1, rtimer_now() + 3000, blink1_handler);
+}
+
+void blink2_handler(void)
+{
+  if (blink2_status) {
+    blink2_status = 0;
+    led_set(led_get() & ~LED2);
+  }
+  else {
+    blink2_status = 1;
+    led_set(led_get() | LED2);
+  }
+  rtimer_set(&blink2, rtimer_now()+5000, blink2_handler);
+}
+
+void blink3_handler(void)
+{
+  if (blink3_status) {
+    blink3_status = 0;
+    led_set(led_get() & ~LED3);
+  }
+  else {
+    blink3_status = 1;
+    led_set(led_get() | LED3);
+  }
+  rtimer_set(&blink3, rtimer_now()+7000, blink3_handler);
+}
+
+void blink4_handler(void)
+{
+  if (blink4_status) {
+    blink4_status = 0;
+    led_set(led_get() & ~LED4);
+  }
+  else {
+    blink4_status = 1;
+    led_set(led_get() | LED4);
+  }
+  rtimer_set(&blink4, rtimer_now()+12000, blink4_handler);
+}
+
 void main(void)
 {
   disable_interrupt();
@@ -81,6 +138,11 @@ void main(void)
   /* flash bank used as storage */
   flash_bank_select(FLASH_BANK_7);
   
+  rtimer_set(&blink1, rtimer_now()+3001, blink1_handler);
+  rtimer_set(&blink2, rtimer_now()+5003, blink2_handler);
+  rtimer_set(&blink3, rtimer_now()+7005, blink3_handler);
+  rtimer_set(&blink4, rtimer_now()+12007, blink4_handler);
+
   /* looping services */
   while(1)
   {

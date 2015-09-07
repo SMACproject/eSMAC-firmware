@@ -41,13 +41,27 @@
 extern "C" {
 #endif
 
-typedef uint16_t timer_t;
+#define RTIMER_SECOND (15625U)
+
+//typedef uint16_t timer_t;
+typedef uint16_t rtimer_clock_t;
+typedef void (* rtimer_callback_t)(void);
 
 extern uint8_t rtimer_busy;
-extern void (* rtimer_callback)(void);
+
+
+struct rtimer {
+  rtimer_clock_t time;
+  rtimer_callback_t func;
+  struct rtimer *next;
+};
 
 void rtimer_init(void);
-uint8_t rtimer_schedule(timer_t t, void(*callback)(void));
+rtimer_clock_t rtimer_now(void);
+uint8_t rtimer_set(struct rtimer *rtimer, rtimer_clock_t time, rtimer_callback_t func);
+//uint8_t rtimer_schedule(rtimer_clock_t t);
+//void rtimer_run_next(void);
+uint8_t rtimer_is_scheduled(void);
 
 #ifdef __cplusplus
 }

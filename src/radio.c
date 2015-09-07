@@ -51,8 +51,7 @@
 #endif
 
 char rf_rx_buf[128];
-  
-static uint8_t uart0_state;
+static uint8_t rf_channel;
 uint8_t destination0;
 uint8_t destination1;
 
@@ -112,6 +111,7 @@ uint8_t rf_set_channel(uint8_t channel)
 
   if (channel >= 11 && channel <= 26) {
     FREQCTRL = 11 + ((channel-11) * 5);
+    rf_channel = channel;
   }
 
   RFST = 0xED; // ISFLUSHRX
@@ -121,6 +121,11 @@ uint8_t rf_set_channel(uint8_t channel)
     return channel;
   else
     return 0;
+}
+
+uint8_t rf_get_channel(void)
+{
+  return rf_channel;
 }
 
 uint8_t rf_get_short_addr1(void)

@@ -36,10 +36,12 @@
 
 #include <stdint.h>
 #include "config.h"
+#include "radio.h"
 #include "uart.h"
 #include "ulin.h"
 
-#include "led.h"
+#define ULIN_BREAK    0x00
+#define ULIN_SYNC     0x55
 
 enum {
   ULIN_IDLE,
@@ -48,7 +50,7 @@ enum {
   ULIN_SENDING
 };
 
-unsigned char ulin_txbuf[13];
+unsigned char ulin_txbuf[ONE_WIRE_BUFFER_SIZE];
 uint8_t identifier = 0;
 
 static uint16_t ulin_err_count = 0;
@@ -66,22 +68,22 @@ void ulin_init(void)
 
 uint8_t ulin_synced(uint8_t * ulin_frame)
 {
-  if (ulin_frame[0] == 0 && ulin_frame[1] == 0 && ulin_frame[2] == 0x55) {
-    return 1;
-  }
-  else {
-    ulin_err_count++;
-    return 0;
-  }
+  if (ulin_frame[0] == ULIN_BREAK)
+    if (ulin_frame[1] == ULIN_BREAK)
+      if (ulin_frame[2] == ULIN_SYNC)
+        return 1;
+
+  ulin_err_count++;
+
+  return 0;
 }
 
 void ulin_handler(uint8_t * ulin_frame)
 {
-  /* do something here */
-  if (ulin_frame[3] == 1)
-    led_set(LED3);
-  else
-    if (ulin_err_count < 100) led_set(0);
+  if (ulin_frame[3] == 0) {
+    if (rf_get_channel() != ulin_frame[4])
+      rf_set_channel(ulin_frame[4]);
+  }
 
   ulin_flush_rxbuf();
 }
@@ -93,12 +95,12 @@ void ulin_input_handler(void)
     return;
   }
 
-  /* The 1st BREAK detection */
+  /* the 1st BREAK detection */
   if ((ulin_state == ULIN_IDLE) && (ulin_get_data() == 0)) {
     ulin_flush_rxbuf();
   }
 
-  /* No sync detected */
+  /* if no sync detected after three data being received, flush the buffer */
   if (ulin_rxpos == 3 && !ulin_synced(ulin_rxbuf))
       ulin_flush_rxbuf();
 
@@ -128,16 +130,15 @@ void ulin_service(void)
       ulin_txbuf[0] = 0x00;
       ulin_txbuf[1] = 0x00;
       ulin_txbuf[2] = 0x55;
-      ulin_txbuf[3] = identifier++;
-      if (identifier == 64) identifier = 0;
-      ulin_txbuf[4] = 0x12;
-      ulin_txbuf[5] = 0x34;
-      ulin_txbuf[6] = 0x56;
-      ulin_txbuf[7] = 0x78;
-      ulin_txbuf[8] = 0x90;
-      ulin_txbuf[9] = 0xAB;
-      ulin_txbuf[10] = 0xCD;
-      ulin_txbuf[11] = 0xEF;
+      ulin_txbuf[3] = 0;
+      ulin_txbuf[4] = rf_get_channel();
+      ulin_txbuf[5] = 0x00;
+      ulin_txbuf[6] = 0x00;
+      ulin_txbuf[7] = 0x00;
+      ulin_txbuf[8] = 0x00;
+      ulin_txbuf[9] = 0x00;
+      ulin_txbuf[10] = 0x00;
+      ulin_txbuf[11] = 0x00;
       ulin_txbuf[12] = 0xAA;
 
       ulin_send(ulin_txbuf, 13);
