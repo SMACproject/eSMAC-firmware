@@ -49,9 +49,6 @@
 
 static struct rtimer *next_rtimer = NULL;
 
-//uint8_t rtimer_busy;
-//void (* rtimer_callback)(void) = NULL;
-
 void rtimer_init(void)
 {
   /*

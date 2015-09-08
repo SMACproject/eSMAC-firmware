@@ -85,7 +85,7 @@ void clock_init(void)
   ST1 = (unsigned char)(timer_value >> 8);
   ST0 = (unsigned char)timer_value;
 
-  //STIE = 1; /* IEN0.STIE interrupt enable */
+  STIE = 1; /* IEN0.STIE interrupt enable */
 }
 /*---------------------------------------------------------------------------*/
 clock_time_t clock_time(void)

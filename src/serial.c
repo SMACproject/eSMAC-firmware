@@ -40,14 +40,18 @@
 #include "serial.h"
 #include "radio.h"
 
+#define SERIAL_TIMEOUT_COUNT 50 /* FIXME not deterministic, need accurate timing */
+
 enum {
   SERIAL_IDLE,
   SERIAL_RECEIVING,
-  SERIAL_RECEIVED,
+  SERIAL_RECEIVING_IDLE,
+  SERIAL_TIMEOUT,
   SERIAL_SENDING
 };
 
 static uint8_t serial_state = SERIAL_IDLE;
+static uint8_t idle_counter = 0;
 struct rtimer serial_rtimer;
 
 void serial_init(void)
@@ -64,31 +68,44 @@ void serial_receiving_timeout (void)
 {
   if (serial_state == SERIAL_RECEIVING) {
     serial_send(serial_rxbuf , serial_rxlen);
-    serial_state = SERIAL_RECEIVED;
+    serial_state = SERIAL_TIMEOUT;
   }
 }
 
 void serial_input_handler(void)
 {
   if (serial_rxpos >= 128 || serial_state == SERIAL_SENDING) return;
-
   serial_rxbuf[serial_rxpos] = serial_get_data();
   serial_rxpos++;
   serial_rxlen++;
 
   serial_state = SERIAL_RECEIVING;
-  //rtimer_schedule(100, serial_receiving_timeout);
-  //rtimer_set(&serial_rtimer, rtimer_now()+100, serial_receiving_timeout);
 }
 
 void serial_service(void)
 {
-  if( serial_state == SERIAL_RECEIVED ) {
-    serial_state = SERIAL_SENDING;
-    rf_send(serial_rxbuf , serial_rxlen);
-    serial_flush_rxbuf();
-
-    serial_state = SERIAL_IDLE;
+  switch (serial_state) {
+    case SERIAL_TIMEOUT:
+      serial_state = SERIAL_SENDING;
+      serial_send(serial_rxbuf, serial_rxlen);
+      rf_send(serial_rxbuf, serial_rxlen);
+      serial_flush_rxbuf();
+      serial_state = SERIAL_IDLE;
+      break;
+    case SERIAL_RECEIVING:
+      idle_counter = 0;
+      serial_state = SERIAL_RECEIVING_IDLE;
+      break;
+    case SERIAL_RECEIVING_IDLE:
+      idle_counter++;
+      if (idle_counter >= SERIAL_TIMEOUT_COUNT) {
+        idle_counter = 0;
+        serial_state = SERIAL_TIMEOUT;
+      }
+      break;
+    default:
+      /* do something here */
+      break;
   }
 }
 
