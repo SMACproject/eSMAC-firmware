@@ -80,10 +80,6 @@ void rtimer_init(void)
   
   /* Acknowledge Timer 1 Interrupts */
   T1IE = 1;
-  
-  /* Release rtimer lock and assign callback to NULL */
-  //rtimer_busy = 0;
-  //rtimer_callback = NULL;
 }
 
 rtimer_clock_t rtimer_now(void)
@@ -91,30 +87,21 @@ rtimer_clock_t rtimer_now(void)
   return (T1CNTL + (T1CNTH << 8));
 }
 
-uint8_t rtimer_schedule(rtimer_clock_t t)
+void rtimer_schedule(rtimer_clock_t t)
 {
-  if (1/*!rtimer_busy*/) {
-    /* Switch to capture mode before writing T1CC1x and
-     * set the compare mode values so we can get an interrupt after t */
-    RT_MODE_CAPTURE();
-    T1CC1L = (unsigned char)t;
-    T1CC1H = (unsigned char)(t >> 8);
-    RT_MODE_COMPARE();
-  
-    /* Turn on compare mode interrupt */
-    T1STAT = 0;
-    T1CCTL1 |= T1CCTL_IM;
-    
-    /* Lock rtimer and assigned a callback */
-    //rtimer_busy = 1;
-    //if (callback) rtimer_callback = callback;
-  }
-  
-  //return rtimer_busy;
-  return 0;
+  /* Switch to capture mode before writing T1CC1x and
+   * set the compare mode values so we can get an interrupt after t */
+  RT_MODE_CAPTURE();
+  T1CC1L = (unsigned char)t;
+  T1CC1H = (unsigned char)(t >> 8);
+  RT_MODE_COMPARE();
+
+  /* Turn on compare mode interrupt */
+  T1STAT = 0;
+  T1CCTL1 |= T1CCTL_IM;
 }
 
-uint8_t rtimer_set(struct rtimer *rtimer,
+void rtimer_set(struct rtimer *rtimer,
     rtimer_clock_t time,
     rtimer_callback_t func)
 {
@@ -122,11 +109,23 @@ uint8_t rtimer_set(struct rtimer *rtimer,
   rtimer_clock_t rt_now, rt1, rt2;
   uint8_t first = 0;
 
+  /* halt T1 counter */
+  T1CTL &= ~(T1CTL_MODE1 | T1CTL_MODE0);
+
   rt_now = rtimer_now();
 
   rtimer->func = func;
   rtimer->time = time;
   rtimer->next = NULL;
+
+  /* FIXME there can be only one rtimer value associated to one interrupt event.
+   * increment it by one for additional 64us to the assigned value.
+   */
+  t = next_rtimer;
+  while (t) {
+    if (t->time == rtimer->time) rtimer->time++;
+    t = t->next;
+  }
 
   if(next_rtimer == NULL) {
     first = 1;
@@ -145,8 +144,6 @@ uint8_t rtimer_set(struct rtimer *rtimer,
       rt2 = t->time + ~rt_now + 1;
     else
       rt2 = t->time - rt_now;
-
-    if (rt1 == rt2) serial_send("*", 1);
 
     if (rt1 < rt2) {
       first = 1;
@@ -169,8 +166,6 @@ uint8_t rtimer_set(struct rtimer *rtimer,
         else
           rt2 = t->next->time - rt_now;
 
-        if (rt1 == rt2) serial_send("#", 1);
-
         if ((rt1 < rt2) || (rtimer->next == NULL)) {
           t->next = rtimer;
           break;
@@ -186,7 +181,9 @@ uint8_t rtimer_set(struct rtimer *rtimer,
   if(first == 1) {
     rtimer_schedule(next_rtimer->time);
   }
-  return 0;
+
+  /* continue T1 counter */
+  T1CTL |= T1CTL_MODE0;
 }
 
 void rtimer_run_next(void)
@@ -219,13 +216,6 @@ void rtimer_isr (void) __interrupt (T1_VECTOR)
     T1CCTL1 &= ~T1CCTL_IM;
 
     rtimer_run_next();
-
-    /* Callback function call */
-    //if (rtimer_callback) rtimer_callback();
-
-    /* Release rtimer lock and callback */
-    //rtimer_busy = 0;
-    //rtimer_callback = NULL;
   }
 
   T1IE = 1; /* Acknowledge Timer 1 Interrupts */

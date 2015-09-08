@@ -58,9 +58,7 @@ struct rtimer {
 
 void rtimer_init(void);
 rtimer_clock_t rtimer_now(void);
-uint8_t rtimer_set(struct rtimer *rtimer, rtimer_clock_t time, rtimer_callback_t func);
-//uint8_t rtimer_schedule(rtimer_clock_t t);
-//void rtimer_run_next(void);
+void rtimer_set(struct rtimer *rtimer, rtimer_clock_t time, rtimer_callback_t func);
 uint8_t rtimer_is_scheduled(void);
 
 #ifdef __cplusplus
