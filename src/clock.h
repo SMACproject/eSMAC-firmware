@@ -41,8 +41,12 @@
 extern "C" {
 #endif
 
+typedef unsigned long clock_time_t;
+
 void clock_init(void);
 void clock_delay_usec(uint16_t usec);
+clock_time_t clock_time(void);
+unsigned long clock_seconds(void);
 
 #ifdef __cplusplus
 }

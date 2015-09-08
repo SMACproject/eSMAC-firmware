@@ -40,7 +40,6 @@
 #include "sfr-bits.h"
 #include "clock.h"
 
-typedef unsigned long clock_time_t;
 #define CLOCK_CONF_SECOND 128
 
 /* Sleep timer runs on the 32k RC osc. */

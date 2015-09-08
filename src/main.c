@@ -49,6 +49,8 @@
 #include "jsmn.h"
 #include "json.h"
 
+#include "led.h"
+
 void main(void)
 {
   disable_interrupt();

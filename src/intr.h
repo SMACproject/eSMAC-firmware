@@ -49,6 +49,7 @@ extern void uart0_isr (void) __interrupt (URX0_VECTOR);
 extern void uart1_isr (void) __interrupt (URX1_VECTOR);
 extern void rf_isr (void) __interrupt (RF_VECTOR);
 extern void rtimer_isr (void) __interrupt (T1_VECTOR);
+void clock_isr (void) __interrupt (ST_VECTOR);
 
 void disable_interrupt(void);
 void enable_interrupt(void);
