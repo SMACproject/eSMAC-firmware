@@ -64,14 +64,6 @@ void serial_init(void)
 #endif
 }
 
-void serial_receiving_timeout (void)
-{
-  if (serial_state == SERIAL_RECEIVING) {
-    serial_send(serial_rxbuf , serial_rxlen);
-    serial_state = SERIAL_TIMEOUT;
-  }
-}
-
 void serial_input_handler(void)
 {
   if (serial_rxpos >= 128 || serial_state == SERIAL_SENDING) return;

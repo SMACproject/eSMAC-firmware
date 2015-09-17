@@ -40,8 +40,10 @@
 #include "uart.h"
 #include "ulin.h"
 
-#define ULIN_BREAK    0x00
-#define ULIN_SYNC     0x55
+#define NAD_BROADCAST   127
+
+#define ULIN_BREAK      0x00
+#define ULIN_SYNC       0x55
 
 enum {
   ULIN_IDLE,
@@ -80,11 +82,12 @@ uint8_t ulin_synced(uint8_t * ulin_frame)
 
 void ulin_handler(uint8_t * ulin_frame)
 {
-  if (ulin_frame[3] == 0) {
+  if (ulin_frame[3] == NAD_BROADCAST) {
     if (rf_get_channel() != ulin_frame[4])
       rf_set_channel(ulin_frame[4]);
   }
 
+  /* either the frame being handled or not, always flush it before leave */
   ulin_flush_rxbuf();
 }
 
@@ -96,7 +99,7 @@ void ulin_input_handler(void)
   }
 
   /* the 1st BREAK detection */
-  if ((ulin_state == ULIN_IDLE) && (ulin_get_data() == 0)) {
+  if ((ulin_state == ULIN_IDLE) && (ulin_get_data() == ULIN_BREAK)) {
     ulin_flush_rxbuf();
   }
 
@@ -123,14 +126,14 @@ void ulin_service(void)
     ulin_state = ULIN_IDLE;
   }
 
-#if ONE_WIRE_TX
+#if CONFIG_MODULE_MASTER
       ulin_tx_mode();
       ulin_state = ULIN_SENDING;
 
       ulin_txbuf[0] = 0x00;
       ulin_txbuf[1] = 0x00;
       ulin_txbuf[2] = 0x55;
-      ulin_txbuf[3] = 0;
+      ulin_txbuf[3] = NAD_BROADCAST;
       ulin_txbuf[4] = rf_get_channel();
       ulin_txbuf[5] = 0x00;
       ulin_txbuf[6] = 0x00;

@@ -44,11 +44,14 @@
 #include "sfr-bits.h"
 #include "jsmn.h"
 #include "json.h"
+#include "clock.h"
 
 /* TODO workaround */
 #include "radio.h"
 #include "sensor.h"
 char is_auto_run = 0;
+
+#define MOTOR_INIT_DELAY 35000
 /*
 #define MOTOR1_PIN1   P0_0
 #define MOTOR1_PIN2   P0_4
@@ -93,6 +96,63 @@ float frac;
 char reply_buf[128];
 int  reply_len = 0;
 #endif
+
+void motor_wiggle(void)
+{
+  MOTOR1_PIN1 = 1;
+  MOTOR1_PIN2 = 0;
+  MOTOR2_PIN1 = 1;
+  MOTOR2_PIN2 = 0;
+
+  clock_delay_usec(MOTOR_INIT_DELAY);
+
+  MOTOR1_PIN1 = 0;
+  MOTOR1_PIN2 = 0;
+  MOTOR2_PIN1 = 0;
+  MOTOR2_PIN2 = 0;
+
+  clock_delay_usec(MOTOR_INIT_DELAY);
+
+  MOTOR1_PIN1 = 0;
+  MOTOR1_PIN2 = 1;
+  MOTOR2_PIN1 = 0;
+  MOTOR2_PIN2 = 1;
+
+  clock_delay_usec(MOTOR_INIT_DELAY);
+
+  MOTOR1_PIN1 = 0;
+  MOTOR1_PIN2 = 0;
+  MOTOR2_PIN1 = 0;
+  MOTOR2_PIN2 = 0;
+
+  clock_delay_usec(MOTOR_INIT_DELAY);
+
+  MOTOR1_PIN1 = 0;
+  MOTOR1_PIN2 = 1;
+  MOTOR2_PIN1 = 0;
+  MOTOR2_PIN2 = 1;
+
+  clock_delay_usec(MOTOR_INIT_DELAY);
+
+  MOTOR1_PIN1 = 0;
+  MOTOR1_PIN2 = 0;
+  MOTOR2_PIN1 = 0;
+  MOTOR2_PIN2 = 0;
+
+  clock_delay_usec(MOTOR_INIT_DELAY);
+
+  MOTOR1_PIN1 = 1;
+  MOTOR1_PIN2 = 0;
+  MOTOR2_PIN1 = 1;
+  MOTOR2_PIN2 = 0;
+
+  clock_delay_usec(MOTOR_INIT_DELAY);
+
+  MOTOR1_PIN1 = 0;
+  MOTOR1_PIN2 = 0;
+  MOTOR2_PIN1 = 0;
+  MOTOR2_PIN2 = 0;
+}
 
 void motor_init(void)
 {
@@ -173,6 +233,8 @@ void motor_init(void)
 #endif
   APCFG = 0; // disables input channels
 #endif
+
+  motor_wiggle();
 }
 
 void motor_set_speed(char motor_number, char speed)

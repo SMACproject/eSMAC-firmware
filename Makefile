@@ -1,5 +1,18 @@
-all: led motor imu
-clean: clean-led clean-motor clean-imu
+all: bluetooth led motor imu
+clean: clean-bluetooth clean-led clean-motor clean-imu
+
+# Rules to build bluetooth module
+#
+bluetooth:
+	@echo "*** BUILDING BLUETOOTH MODULE ***"
+	make -C build/bluetooth all
+
+clean-bluetooth:
+	make -C build/bluetooth clean
+
+install-bluetooth: bluetooth
+	make -C build/bluetooth install
+
 
 # Rules to build LED module
 #

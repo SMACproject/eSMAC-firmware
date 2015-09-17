@@ -1,7 +1,7 @@
 /*
- * intr.h
+ * bluetooth.c
  *
- * Created on: Sep 6, 2015
+ * Created on: Sep 16, 2015
  *     Author: Ekawahyu Susilo
  *
  * Copyright (c) 2015, Chongqing Aisenke Electronic Technology Co., Ltd.
@@ -34,28 +34,9 @@
  *
  */
 
+#include "bluetooth.h"
 
-#ifndef SRC_INTR_H_
-#define SRC_INTR_H_
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#include "cc253x.h"
-#include "sfr-bits.h"
-
-void uart0_isr (void) __interrupt (URX0_VECTOR);
-void uart1_isr (void) __interrupt (URX1_VECTOR);
-void rf_isr (void) __interrupt (RF_VECTOR);
-void rtimer_isr (void) __interrupt (T1_VECTOR);
-void clock_isr (void) __interrupt (ST_VECTOR);
-
-void disable_interrupt(void);
-void enable_interrupt(void);
-
-#ifdef __cplusplus
+void bluetooth_init(void)
+{
+  /* bluetooth requires no initialization */
 }
-#endif
-
-#endif /* SRC_INTR_H_ */

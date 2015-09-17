@@ -41,7 +41,10 @@
 extern "C" {
 #endif
 
-#if defined MODULE_LED
+#if defined MODULE_BLUETOOTH
+#include "bluetooth.h"
+#define module_init(x) bluetooth_init(x)
+#elif defined MODULE_LED
 #include "led.h"
 #define module_init(x) led_init(x)
 #elif defined MODULE_MOTOR
@@ -55,7 +58,7 @@ extern "C" {
 #define module_init(x) battery_sensor_init(x)
 #else
 #define module_init(x)
-#warning modules.h: module_init(x) is not defined, building a module requires initialization!
+#error modules.h: module_init(x) is not defined, building a module requires initialization!
 #endif
 
 #ifdef __cplusplus

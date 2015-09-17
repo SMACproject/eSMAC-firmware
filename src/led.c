@@ -66,9 +66,6 @@ float sane = 0;
 uint8_t dec;
 float frac;
 
-char reply_buf[128];
-int  reply_len = 0;
-
 void led_init(void)
 {
   P1SEL &= ~(LED1_MASK | LED2_MASK | LED3_MASK);
@@ -80,15 +77,6 @@ void led_init(void)
   LED3_PIN = 0;
   LED4_PIN = 0;
   leds_status = 0;
-
-  /* TODO connect temperature sensor to the SoC, part of sensor.c init */
-  ATEST = 1;
-#if defined __IAR_SYSTEMS_ICC__
-  TR0 = 1;
-#else
-  TESTREG0 = 1;
-#endif
-  APCFG = 0; // disables input channels
 }
 
 void led_set(char leds)
@@ -216,76 +204,6 @@ int json_parser(char *json_string)
   }
 
   led_set(leds_status);
-
-  /*
-   * TODO temporary temperature and battery sensor JSON string handler
-   */
-  for (i = 1; i < r; i++) {
-
-    if (jsoneq(json_string, &t[i], "sensor") == 0) {
-                if (jsoneq(json_string, &t[i+1], "temperature") == 0) {
-                  /*
-                   * Temperature:
-                   * Using 1.25V ref. voltage (1250mV).
-                   * Typical AD Output at 25 degC: 1480
-                   * Typical Co-efficient     : 4.5 mV/degC
-                   *
-                   * Thus, at 12bit decimation (and ignoring the VDD co-efficient as well
-                   * as offsets due to lack of calibration):
-                   *
-                   *          AD - 1480
-                   * T = 25 + ---------
-                   *              4.5
-                   */
-                  // float temperature = ((float)((ADCH << 8) | ADCL) >> 4) * 1150.0 / 2047.0 - 743.0) / 2.45;
-                  sensor_reading = sensor_temperature();
-                  //sane = 25 + ((sensor_reading - 1480) / 4.5);
-                  sane = (sensor_reading * 1150.0 / 2047.0 - 743.0) / 4.5;
-                  dec = sane;
-                  frac = sane - dec;
-                  memset(reply_buf, 0, sizeof(reply_buf));
-                  //sprintf(reply_buf,"Temp=%d.%02u C (%d)\n", dec, (unsigned int)(frac*100), sensor_reading);
-                  sprintf(reply_buf,"{\"temp\": %d.%02u deg C}", dec, (unsigned int)(frac*100), sensor_reading);
-                  rf_send(reply_buf, 25);
-                }
-                if (jsoneq(json_string, &t[i+1], "battery") == 0) {
-                  /*
-                   * Power Supply Voltage.
-                   * Using 1.25V ref. voltage.
-                   * AD Conversion on VDD/3
-                   *
-                   * Thus, at 12bit resolution:
-                   *
-                   *          ADC x 1.15 x 3
-                   * Supply = -------------- V
-                   *               2047
-                   */
-                  sensor_reading = sensor_battery();
-                  sane = sensor_reading * 1.15 * 3 / 2047;
-                  dec = sane;
-                  frac = sane - dec;
-                  memset(reply_buf, 0, sizeof(reply_buf));
-                  //sprintf(reply_buf,"Supply=%d.%02u V (%d)\n", dec, (unsigned int)(frac*100), sensor_reading);
-                  sprintf(reply_buf,"{\"batt\": %d.%02u V}", dec, (unsigned int)(frac*100), sensor_reading);
-                  rf_send(reply_buf, 25);
-                }
-                i++;
-    } else {
-/*#ifdef CONFIG_DONT_HAVE_SPRINTF_WITH_STRING_LENGTH_FORMATTING
-      strncpy(buffer, json_string + t[i].start, t[i].end-t[i].start);
-      printf("Unexpected key: %s (%i:%i)\n", buffer, t[i].type, t[i].size);
-#else
-      sprintf(buffer, "Unexpected key: %.*s (%i:%i)\n", t[i].end-t[i].start,
-          json_string + t[i].start, t[i].type, t[i].size);
-      printf("%s", buffer);
-#endif*/
-    }
-
-  }
-
-  /*
-   * end of temporary temperature and battery sensor JSON string handler
-   */
 
   return 0;
 }

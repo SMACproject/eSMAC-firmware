@@ -46,6 +46,12 @@ extern "C" {
 #define CONFIG_DONT_HAVE_SPRINTF_WITH_STRING_LENGTH_FORMATTING
 #endif
 
+#if defined MODULE_BLUETOOTH
+#define CONFIG_MODULE_MASTER      1
+#else
+#define CONFIG_MODULE_MASTER      0
+#endif
+
 #define CONFIG_RADIO_CHANNEL      20
 
 #define CONFIG_MOTOR_PWM_ENABLE   0

@@ -42,8 +42,6 @@
 extern "C" {
 #endif
 
-#define ONE_WIRE_TX   0
-
 #if (UART_ONE_WIRE_PORT == 0)
 #define ulin_get_data       uart0_get_data
 #define ulin_rxbuf          uart0_rxbuf
