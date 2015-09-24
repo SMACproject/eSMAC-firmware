@@ -34,9 +34,19 @@
  *
  */
 
+#include <stdint.h>
 #include "bluetooth.h"
 
 void bluetooth_init(void)
 {
   /* bluetooth requires no initialization */
+}
+
+int json_parser(char *json_string, uint8_t len)
+{
+  /* bluetooth does not parse any JSON string */
+  json_string = json_string;
+  len = len;
+
+  return 0;
 }

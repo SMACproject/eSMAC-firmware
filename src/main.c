@@ -70,13 +70,13 @@ void main(void)
   /* radio configuration */
   rf_init(RADIO_CHANNEL);
 
-  /* module specific initialization - modules.h */
-  module_init();
-
   /* comment this line out to prevent bluetooth board from crashing */
   printf("\nSMAC2.0 - [%x:%x]\n", rf_get_short_addr1(), rf_get_short_addr0());
   
   enable_interrupt();
+
+  /* module specific initialization - modules.h */
+  module_init();
 
   /* flash bank used as storage */
   flash_bank_select(FLASH_BANK_7);
@@ -84,8 +84,8 @@ void main(void)
   /* looping services */
   while(1)
   {
+    json_service();
     serial_service();
-
     ulin_service();
   }
 }

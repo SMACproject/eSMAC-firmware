@@ -162,17 +162,14 @@ void rf_receive_isr(void)
   RFST = 0xED;
   if( crc_ok & 0x80 )
   {
-    // print it to console
-    uart0_send( rf_rx_buf , rf_rx_len);
+    uart0_send( rf_rx_buf , rf_rx_len); /* print it to console */
     
 #if CONFIG_MODULE_MASTER
 #else
-    // parse with jsmn and execute
-    json_parser(rf_rx_buf);
+    /* parse with jsmn and execute */
+    json_string_received(rf_rx_buf, sizeof(rf_rx_buf)/sizeof(rf_rx_buf[0]));
 #endif
-    
-    //printf("[%d:%d]\n",rf_rx_len,rssi);
-    memset(rf_rx_buf, 0, sizeof(rf_rx_buf));
+    //printf("[%d:%d]\n", rf_rx_len, rssi);
   }
   else
   {
@@ -238,5 +235,6 @@ void rf_isr (void) __interrupt (RF_VECTOR)
     S1CON = 0;
     RFIRQF0 &= ~(1<<6);
   }
+  RFIRQF0 = 0; //???????
   EA = 1;
 }

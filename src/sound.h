@@ -1,8 +1,8 @@
 /*
- * modules.h
+ * sound.h
  *
- * Created on: Aug 10, 2015
- *     Author: nodino
+ * Created on: Sep 16, 2015
+ *     Author: Ekawahyu Susilo
  *
  * Copyright (c) 2015, Chongqing Aisenke Electronic Technology Co., Ltd.
  * All rights reserved.
@@ -34,38 +34,50 @@
  *
  */
 
-#ifndef SRC_MODULES_H_
-#define SRC_MODULES_H_
+#ifndef SOUND_H_
+#define SOUND_H_
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#if defined MODULE_BLUETOOTH
-#include "bluetooth.h"
-#define module_init(x) bluetooth_init(x)
-#elif defined MODULE_SOUND
-#include "sound.h"
-#define module_init(x) sound_init(x)
-#elif defined MODULE_LED
-#include "led.h"
-#define module_init(x) led_init(x)
-#elif defined MODULE_MOTOR
-#include "motor.h"
-#define module_init(x) motor_init(x)
-#elif defined MODULE_IMU
-#include "lsm330dlc.h"
-#include "lsm9ds0.h"
-#define module_init(x) imu_init(x)
-#elif defined MODULE_BATTERY_WITH_SENSOR
-#define module_init(x) battery_sensor_init(x)
-#else
-#define module_init(x)
-#error modules.h: module_init(x) is not defined, building a module requires initialization!
-#endif
+#define SOUND_SECOND    RTIMER_SECOND
+
+#define C4  (500000/261)
+#define D4  (500000/293)
+#define E4  (500000/329)
+#define F4  (500000/349)
+#define G4  (500000/392)
+#define A4  (500000/440)
+#define B4  (500000/493)
+#define C5  (500000/523)
+#define D5  (500000/587)
+#define E5  (500000/659)
+#define F5  (500000/698)
+#define G5  (500000/783)
+#define A5  (500000/880)
+#define B5  (500000/987)
+#define C6  (500000/1046)
+#define D6  (500000/1174)
+#define E6  (500000/1318)
+#define F6  (500000/1396)
+#define G6  (500000/1567)
+#define A6  (500000/1760)
+#define B6  (500000/1975)
+#define C7  (500000/2093)
+#define D7  (500000/2349)
+#define E7  (500000/2637)
+#define F7  (500000/2793)
+#define G7  (500000/3135)
+#define A7  (500000/3520)
+#define B7  (500000/3951)
+#define C8  (500000/4186)
+
+void sound_init(void);
+void sound_play(uint16_t note, uint16_t duration);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* SRC_MODULES_H_ */
+#endif /* SOUND_H_ */

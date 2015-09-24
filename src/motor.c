@@ -325,7 +325,7 @@ char led_get(void)
   return leds_status;
 }
 
-int json_parser(char *json_string)
+int json_parser(char *json_string, uint8_t len)
 {
   int i, r, res;
   jsmn_parser p;
@@ -336,7 +336,7 @@ int json_parser(char *json_string)
   memset(buffer, 0, sizeof(buffer));
   jsmn_init(&p);
 
-  r = jsmn_parse(&p, json_string, strlen(json_string), t, sizeof(t)/sizeof(t[0]));
+  r = jsmn_parse(&p, json_string, len, t, sizeof(t)/sizeof(t[0]));
   if (r < 0) {
     printf("Failed to parse JSON: %d\n", r);
     return 1;
@@ -354,17 +354,17 @@ int json_parser(char *json_string)
                 if (jsoneq(json_string, &t[i+1], "cw") == 0) {
                   motors_status |= MOTOR1_1;
                   motors_status &= ~MOTOR1_2;
-                  rf_send("m1:1",4);
+                  //rf_send("m1:1",4);
                 }
                 if (jsoneq(json_string, &t[i+1], "ccw") == 0) {
                   motors_status &= ~MOTOR1_1;
                   motors_status |= MOTOR1_2;
-                  rf_send("m1:1",4);
+                  //rf_send("m1:1",4);
                 }
                 if (jsoneq(json_string, &t[i+1], "off") == 0) {
                   motors_status &= ~MOTOR1_1;
                   motors_status &= ~MOTOR1_2;
-                  rf_send("m1:0",4);
+                  //rf_send("m1:0",4);
                 }
                 if (jsoneq(json_string, &t[i+1], "brake") == 0) {
                   motors_status |= MOTOR1_1;
@@ -375,17 +375,17 @@ int json_parser(char *json_string)
                 if (jsoneq(json_string, &t[i+1], "cw") == 0) {
                   motors_status |= MOTOR2_1;
                   motors_status &= ~MOTOR2_2;
-                  rf_send("m2:1",4);
+                  //rf_send("m2:1",4);
                 }
                 if (jsoneq(json_string, &t[i+1], "ccw") == 0) {
                   motors_status &= ~MOTOR2_1;
                   motors_status |= MOTOR2_2;
-                  rf_send("m2:1",4);
+                  //rf_send("m2:1",4);
                 }
                 if (jsoneq(json_string, &t[i+1], "off") == 0) {
                   motors_status &= ~MOTOR2_1;
                   motors_status &= ~MOTOR2_2;
-                  rf_send("m2:0",4);
+                  //rf_send("m2:0",4);
                 }
                 if (jsoneq(json_string, &t[i+1], "brake") == 0) {
                   motors_status |= MOTOR2_1;

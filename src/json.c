@@ -37,9 +37,20 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include "config.h"
 #include "jsmn.h"
 #include "json.h"
+
+enum {
+  JSON_IDLE,
+  JSON_STRING_RECEIVED,
+  JSON_PARSING
+};
+
+static uint8_t json_state = JSON_IDLE;
+static char * json_string = NULL;
+static uint8_t json_string_len = 0;
 
 int jsoneq(const char *json, jsmntok_t *tok, const char *s)
 {
@@ -48,4 +59,30 @@ int jsoneq(const char *json, jsmntok_t *tok, const char *s)
 		return 0;
 	}
 	return -1;
+}
+
+void json_service(void)
+{
+  switch (json_state) {
+    case JSON_STRING_RECEIVED:
+      json_state = JSON_PARSING;
+      if (json_string) {
+        json_parser(json_string, json_string_len);
+        memset(json_string, 0, json_string_len);
+      }
+      json_state = JSON_IDLE;
+      break;
+    default:
+      /* do something here */
+      break;
+  }
+}
+
+void json_string_received(char * buffer, uint8_t len)
+{
+  if (json_state == JSON_IDLE) {
+    json_state = JSON_STRING_RECEIVED;
+    json_string = buffer;
+    json_string_len = len;
+  }
 }
