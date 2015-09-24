@@ -86,3 +86,8 @@ void json_string_received(char * buffer, uint8_t len)
     json_string_len = len;
   }
 }
+
+uint8_t json_parser_is_busy(void)
+{
+  return (json_state != JSON_IDLE);
+}

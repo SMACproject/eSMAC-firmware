@@ -145,6 +145,11 @@ void rf_receive_isr(void)
   int i;
   char crc_ok = 0;
 
+  /* a workaround to prevent new radio message to override RX buffer
+   * while jsmn is parsing it
+   */
+  if (json_parser_is_busy()) return;
+
   rf_rx_len = RFD - 13;
   rf_rx_len &= 0x7F;
   for (i = 0; i < 11; i++)
@@ -162,14 +167,14 @@ void rf_receive_isr(void)
   RFST = 0xED;
   if( crc_ok & 0x80 )
   {
-    uart0_send( rf_rx_buf , rf_rx_len); /* print it to console */
+    uart0_send( rf_rx_buf, rf_rx_len); /* print it to console */
     
 #if CONFIG_MODULE_MASTER
 #else
     /* parse with jsmn and execute */
     json_string_received(rf_rx_buf, sizeof(rf_rx_buf)/sizeof(rf_rx_buf[0]));
 #endif
-    //printf("[%d:%d]\n", rf_rx_len, rssi);
+
   }
   else
   {

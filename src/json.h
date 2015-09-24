@@ -50,6 +50,7 @@ int json_parser(char *json_string, uint8_t len);
 int jsoneq(const char *json, jsmntok_t *tok, const char *s);
 void json_service(void);
 void json_string_received(char * buffer, uint8_t len);
+uint8_t json_parser_is_busy(void);
 
 #ifdef __cplusplus
 }
